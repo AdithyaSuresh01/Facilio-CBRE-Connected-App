@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "vite build",
-    "build:vue": "vite build --config vite.vue.config.ts --outDir dist-vue index-vue.html",
+    "build:vue": "vite build --config vite.vue.config.ts",
     "dev": "vite",
     "dev:vue": "vite --config vite.vue.config.ts --open /index-vue.html"
   },

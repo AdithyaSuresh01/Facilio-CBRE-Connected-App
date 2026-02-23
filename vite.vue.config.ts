@@ -13,5 +13,11 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    outDir: "dist-vue",
+    rollupOptions: {
+      input: path.resolve(__dirname, "index-vue.html"),
+    },
+  },
   assetsInclude: ["**/*.svg", "**/*.csv"],
 });
