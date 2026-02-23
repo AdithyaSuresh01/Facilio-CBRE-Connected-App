@@ -27,28 +27,25 @@
 
 <body>
   <div id="app" class="height100" v-cloak>
-    <div v-if="isLandingView" class="bg-white min-h-screen flex flex-col">
-      <div class="flex-1 w-full max-w-[1024px] mx-auto px-[24px] py-[24px] flex flex-col gap-[24px]">
-        <div class="flex items-center justify-between gap-[12px]">
+    <div v-if="isLandingView" class="bg-white min-h-screen flex flex-col text-left">
+      <div class="flex-1 w-full max-w-[1024px] mx-auto px-[24px] py-[24px] flex flex-col gap-[24px] text-left">
+        <div class="flex items-center justify-start gap-[12px]">
           <img
             src="/app/images/facilio-logo.webp"
             alt="Facilio"
             class="h-[18px] w-[71.25px] object-contain shrink-0"
           />
-          <p v-if="currentUser" class="text-[12px] leading-[18px] text-[#607796] truncate">
-            Hello <b>{{ currentUser.name }}</b>
-          </p>
         </div>
 
         <div class="bg-[#3c229d] sm:h-[200px] relative rounded-[16px] shrink-0 w-full overflow-hidden">
           <div class="hidden sm:flex flex-row items-center size-full">
             <div class="flex gap-[40px] items-center px-[40px] relative size-full">
               <div class="flex flex-[1_0_0] flex-col gap-[16px] items-start min-h-px min-w-px relative z-[1]">
-                <div class="flex flex-col gap-[4px] items-start relative shrink-0 w-full whitespace-pre-wrap">
-                  <p class="capitalize font-medium leading-[26px] text-[#edf5ff] text-[20px]">
+                <div class="flex flex-col gap-[4px] items-start relative shrink-0 w-full whitespace-pre-wrap text-left">
+                  <p class="capitalize font-medium leading-[26px] text-[#edf5ff] text-[20px] text-left">
                     Knowledge Base
                   </p>
-                  <p class="font-normal leading-[22px] text-[#d8e3f1] text-[16px] w-[400px] max-w-full">
+                  <p class="font-normal leading-[22px] text-[#d8e3f1] text-[16px] w-[400px] max-w-full text-left">
                     Manuals, training materials and guidelines enabling seamless operations across the platform
                   </p>
                 </div>
@@ -70,6 +67,7 @@
                 src="/app/images/hero-illustration.webp"
                 alt="Help desk illustration"
                 class="h-[160px] shrink-0 object-contain absolute bottom-0 right-[40px]"
+                onerror="this.style.display='none'"
               />
             </div>
           </div>
@@ -104,16 +102,16 @@
           </p>
         </div>
 
-        <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[16px] w-full">
+        <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-[16px] w-full text-left">
           <div
             v-for="category in filteredCategories"
             :key="category.id"
             @click="openCategory(category.slug)"
-            class="bg-white relative rounded-[16px] cursor-pointer transition-all duration-200 hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)] group"
+            class="bg-white relative rounded-[16px] cursor-pointer transition-all duration-200 hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)] group h-full"
           >
-            <div class="flex flex-col gap-[8px] items-start p-[16px] w-full">
+            <div class="flex flex-col gap-[8px] items-start p-[16px] w-full text-left">
               <div class="flex items-center justify-between w-full">
-                <p class="capitalize font-medium leading-[20px] text-[#283648] text-[14px]">
+                <p class="capitalize font-medium leading-[20px] text-[#283648] text-[14px] text-left">
                   {{ category.title }}
                 </p>
                 <i
@@ -121,7 +119,7 @@
                   class="text-[#283648] opacity-0 group-hover:opacity-100 transition-opacity w-4 h-4"
                 ></i>
               </div>
-              <p class="font-normal leading-[20px] text-[#384a62] text-[14px] whitespace-pre-wrap">
+              <p class="font-normal leading-[20px] text-[#384a62] text-[14px] whitespace-pre-wrap text-left">
                 {{ category.description }}
               </p>
             </div>
@@ -146,17 +144,14 @@
       </div>
     </div>
 
-    <div v-else-if="activeCategory" class="bg-white min-h-screen flex flex-col">
-      <div class="flex-1 w-full max-w-[1024px] mx-auto px-[24px] py-[24px] flex flex-col gap-[24px]">
-        <div class="flex items-center justify-between gap-[12px]">
+    <div v-else-if="activeCategory" class="bg-white min-h-screen flex flex-col text-left">
+      <div class="flex-1 w-full max-w-[1024px] mx-auto px-[24px] py-[24px] flex flex-col gap-[24px] text-left">
+        <div class="flex items-center justify-start gap-[12px]">
           <img
             src="/app/images/facilio-logo.webp"
             alt="Facilio"
             class="h-[18px] w-[71.25px] object-contain shrink-0"
           />
-          <p v-if="currentUser" class="text-[12px] leading-[18px] text-[#607796] truncate">
-            Hello <b>{{ currentUser.name }}</b>
-          </p>
         </div>
 
         <div class="pt-[16px]">
