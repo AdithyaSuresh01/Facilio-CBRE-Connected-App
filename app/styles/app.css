@@ -14,6 +14,18 @@ body,
   max-width: 1024px;
 }
 
+#app .kb-shell p,
+#app .kb-shell h1,
+#app .kb-shell h2,
+#app .kb-shell h3,
+#app .kb-shell span,
+#app .kb-shell button,
+#app .kb-shell input {
+  text-indent: 0 !important;
+  margin-left: 0 !important;
+  padding-left: 0;
+}
+
 body {
   padding: 0;
   margin: 0;
@@ -60,6 +72,13 @@ h2 {
   max-width: 430px;
 }
 
+#app .kb-hero-copy,
+#app .kb-hero-copy p,
+#app .kb-card,
+#app .kb-card p {
+  text-align: left !important;
+}
+
 #app .kb-search-input {
   min-height: 38px;
   line-height: 20px;
@@ -79,6 +98,7 @@ h2 {
 
 #app .kb-card-desc {
   min-height: 60px;
+  text-align: left !important;
 }
 
 [v-cloak] {
