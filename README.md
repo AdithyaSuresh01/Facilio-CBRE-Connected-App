@@ -36,4 +36,16 @@ The output is generated into `dist-vue/`.
 For migration details and Facilio embedding pattern, see:
 
 - `docs/vue-facilio-migration.md`
+
+## Facilio uploadable package (`/app`)
+
+For direct Facilio Connected Apps upload (without Vite build), use the `/app` folder:
+
+- `app/index.html`
+- `app/scripts/data.js`
+- `app/scripts/app.js`
+- `app/styles/app.css`
+- `app/images/*`
+
+This package follows the Facilio template format you shared (Vue 2 + Facilio SDK + static assets).
   
