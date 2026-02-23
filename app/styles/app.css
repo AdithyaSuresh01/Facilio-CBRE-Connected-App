@@ -10,6 +10,10 @@ body,
   text-align: left;
 }
 
+#app .kb-shell {
+  max-width: 1024px;
+}
+
 body {
   padding: 0;
   margin: 0;
@@ -28,6 +32,53 @@ p,
 h1,
 h2 {
   margin: 0;
+}
+
+#app input,
+#app button {
+  font: inherit;
+}
+
+#app input {
+  margin: 0;
+}
+
+#app .kb-hero {
+  min-height: 200px;
+}
+
+#app .kb-hero-desktop {
+  min-height: 200px;
+  align-items: stretch;
+}
+
+#app .kb-hero-inner {
+  align-items: flex-start;
+}
+
+#app .kb-hero-left {
+  max-width: 430px;
+}
+
+#app .kb-search-input {
+  min-height: 38px;
+  line-height: 20px;
+}
+
+#app .kb-hero-illustration {
+  pointer-events: none;
+}
+
+#app .kb-card-grid {
+  align-items: stretch;
+}
+
+#app .kb-card {
+  min-height: 132px;
+}
+
+#app .kb-card-desc {
+  min-height: 60px;
 }
 
 [v-cloak] {
