@@ -22,8 +22,15 @@
 
 #app .kb-hero-copy,
 #app .kb-hero-copy p,
+#app .kb-hero-title,
+#app .kb-hero-subtitle,
 #app .kb-card-title,
 #app .kb-card-desc {
+  text-align: left !important;
+}
+
+#app .kb-hero-mobile,
+#app .kb-hero-mobile * {
   text-align: left !important;
 }
 
