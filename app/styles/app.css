@@ -10,6 +10,13 @@ body,
   text-align: left;
 }
 
+#app .kb-page,
+#app .kb-page *,
+#app .kb-page *::before,
+#app .kb-page *::after {
+  text-indent: 0 !important;
+}
+
 #app .kb-shell {
   max-width: 1024px;
 }
@@ -21,8 +28,8 @@ body,
 #app .kb-shell span,
 #app .kb-shell button,
 #app .kb-shell input {
-  text-indent: 0 !important;
   margin-left: 0 !important;
+  margin-inline-start: 0 !important;
 }
 
 body {

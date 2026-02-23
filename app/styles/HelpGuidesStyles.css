@@ -1,14 +1,22 @@
 @import url("/app/styles/app.css");
 
 /* Connected-app host style guards */
-#app .kb-shell p,
-#app .kb-shell h1,
-#app .kb-shell h2,
-#app .kb-shell h3,
-#app .kb-shell span,
-#app .kb-shell input,
-#app .kb-shell button {
+#app .kb-page,
+#app .kb-page *,
+#app .kb-page *::before,
+#app .kb-page *::after {
   text-indent: 0 !important;
+}
+
+#app .kb-page p,
+#app .kb-page h1,
+#app .kb-page h2,
+#app .kb-page h3,
+#app .kb-page span,
+#app .kb-page input,
+#app .kb-page button {
+  margin-left: 0 !important;
+  margin-inline-start: 0 !important;
   letter-spacing: normal !important;
 }
 
