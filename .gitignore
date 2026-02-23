@@ -1,0 +1,4 @@
+node_modules/
+dist/
+dist-vue/
+.DS_Store
