@@ -133,13 +133,14 @@
       </div>
 
       <div class="flex gap-[8px] h-[48px] items-center justify-center w-full border-t border-[#dbdbdb]">
-        <p class="font-normal leading-[20px] text-[#607796] text-[28px]">
+        <p class="font-medium leading-[18px] text-[#607796] text-[12px] opacity-70">
           Powered By
         </p>
+        <div class="bg-[#dbdbdb] h-[10px] shrink-0 w-px"></div>
         <img
           src="/app/images/HelpGuides/facilio-logo.svg"
           alt="Facilio"
-          class="h-[24px] w-auto object-contain shrink-0"
+          class="h-[12px] w-[48px] object-contain shrink-0"
         />
       </div>
     </div>
@@ -241,13 +242,14 @@
       </div>
 
       <div class="flex gap-[8px] h-[48px] items-center justify-center w-full border-t border-[#dbdbdb]">
-        <p class="font-normal leading-[20px] text-[#607796] text-[28px]">
+        <p class="font-medium leading-[18px] text-[#607796] text-[12px] opacity-70">
           Powered By
         </p>
+        <div class="bg-[#dbdbdb] h-[10px] shrink-0 w-px"></div>
         <img
           src="/app/images/HelpGuides/facilio-logo.svg"
           alt="Facilio"
-          class="h-[24px] w-auto object-contain shrink-0"
+          class="h-[12px] w-[48px] object-contain shrink-0"
         />
       </div>
 
@@ -388,6 +390,7 @@
           <div class="flex items-center justify-end gap-[12px] p-[16px] border-t border-[#eae9e9]">
             <template v-if="previewResource.type === 'PDF' && previewResource.url">
               <a
+                v-if="canDownloadGuides"
                 :href="previewResource.url"
                 target="_blank"
                 rel="noopener noreferrer"

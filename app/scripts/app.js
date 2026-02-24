@@ -84,11 +84,19 @@
       return "https:" + raw;
     }
 
+    const runtimeOrigin =
+      global &&
+      global.location &&
+      typeof global.location.origin === "string" &&
+      global.location.origin
+        ? global.location.origin
+        : "https://cbre.faciliosandbox.com.au";
+
     if (raw.startsWith("/")) {
-      return "https://cbre.faciliosandbox.com.au" + raw;
+      return runtimeOrigin + raw;
     }
 
-    return "https://cbre.faciliosandbox.com.au/" + raw.replace(/^\/+/, "");
+    return runtimeOrigin + "/" + raw.replace(/^\/+/, "");
   }
 
   function escapeHtml(value) {
@@ -542,11 +550,16 @@
             type = "Article";
           }
 
+          const guideUrl =
+            type === "Video"
+              ? (downloadUrl || previewUrl || "")
+              : (previewUrl || downloadUrl || "");
+
           const normalizedGuide = {
             id: String(idValue),
             title: String(title),
             type: type,
-            url: previewUrl || downloadUrl || "",
+            url: guideUrl,
             downloadUrl: downloadUrl || previewUrl || "",
             description: String(description || ""),
           };
