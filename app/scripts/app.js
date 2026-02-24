@@ -378,7 +378,7 @@
                 data: {
                   nameSpace: "helpGuide",
                   functionName: "getHelpGuideCategories",
-                  paramList: roleId,
+                  paramList: [roleId],
                 },
               }
             );
