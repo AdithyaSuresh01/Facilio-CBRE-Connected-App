@@ -29,6 +29,47 @@
     return decodeURIComponent(match[1]);
   }
 
+  function slugify(value, fallback) {
+    const source = String(value || fallback || "category");
+    return source
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  }
+
+  function parseMapLikeString(value) {
+    const text = String(value || "").trim();
+    if (!text) {
+      return {};
+    }
+
+    const trimmed = text.replace(/^\{/, "").replace(/\}$/, "");
+    if (trimmed.indexOf("=") === -1) {
+      return { name: text };
+    }
+
+    const output = {};
+    const entries = trimmed.split(/,\s(?=[^,=]+\=)/g);
+
+    entries.forEach((entry) => {
+      const separatorIndex = entry.indexOf("=");
+      if (separatorIndex === -1) {
+        return;
+      }
+
+      const key = entry.slice(0, separatorIndex).trim();
+      const mapValue = entry.slice(separatorIndex + 1).trim();
+      if (!key) {
+        return;
+      }
+
+      output[key] = mapValue;
+    });
+
+    return output;
+  }
+
   function escapeHtml(value) {
     return String(value)
       .replace(/&/g, "&amp;")
@@ -115,6 +156,8 @@
       data: {
         currentUser: null,
         categories: global.OPS_HELP_DESK_CATEGORIES || [],
+        helpCategories: [],
+        hasFetchedHelpCategories: false,
         searchQuery: "",
         resourceSearchQuery: "",
         activeFilter: DEFAULT_FILTER,
@@ -122,6 +165,13 @@
         selectedSlug: null,
       },
       computed: {
+        categoryList() {
+          if (this.hasFetchedHelpCategories) {
+            return this.helpCategories;
+          }
+
+          return this.categories;
+        },
         isLandingView() {
           return this.selectedSlug === null;
         },
@@ -129,15 +179,16 @@
           if (!this.selectedSlug) {
             return null;
           }
-          return this.categories.find((category) => category.slug === this.selectedSlug) || null;
+          return this.categoryList.find((category) => category.slug === this.selectedSlug) || null;
         },
         filteredCategories() {
           const query = this.searchQuery.trim().toLowerCase();
+          const sourceCategories = this.categoryList;
           if (!query) {
-            return this.categories;
+            return sourceCategories;
           }
 
-          return this.categories.filter((category) => {
+          return sourceCategories.filter((category) => {
             return (
               category.title.toLowerCase().includes(query) ||
               category.description.toLowerCase().includes(query)
@@ -214,10 +265,11 @@
 
         try {
           global.facilioApp = FacilioAppSDK.init();
-          global.facilioApp.on("app.loaded", () => {
+          global.facilioApp.on("app.loaded", async () => {
             if (typeof global.facilioApp.getCurrentUser === "function") {
               this.currentUser = global.facilioApp.getCurrentUser();
             }
+            await this.getHelpGuideCategoryDetails();
             this.fetchData();
           });
         } catch (error) {
@@ -232,6 +284,120 @@
         document.removeEventListener("keydown", this.handleEscapeKey);
       },
       methods: {
+        normalizeHelpGuideCategory(record, index) {
+          const source =
+            record && typeof record === "object" && !Array.isArray(record)
+              ? record
+              : parseMapLikeString(record);
+
+          const idValue =
+            source.id ||
+            source.categoryId ||
+            source.category_id ||
+            source.helpCategoryId ||
+            source.help_category_id ||
+            ("dynamic-" + (index + 1));
+
+          const title =
+            source.name ||
+            source.title ||
+            source.categoryName ||
+            source.category_name ||
+            ("Category " + (index + 1));
+
+          const description =
+            source.description_custom_helpguidecategories ||
+            source.description ||
+            source.categoryDescription ||
+            source.category_description ||
+            "";
+
+          const id = String(idValue);
+          const fallbackSlug = "category-" + id;
+          const slug = slugify(title, fallbackSlug) + "-" + id;
+
+          const staticCategoryMatch = this.categories.find((category) => {
+            return (
+              category.title.toLowerCase() === String(title).toLowerCase() ||
+              category.slug === slugify(title, fallbackSlug)
+            );
+          });
+
+          if (staticCategoryMatch) {
+            return {
+              id: id,
+              slug: staticCategoryMatch.slug,
+              title: String(title),
+              description: String(description || staticCategoryMatch.description || ""),
+              articleCount: staticCategoryMatch.articleCount || 0,
+              videoCount: staticCategoryMatch.videoCount || 0,
+              pdfCount: staticCategoryMatch.pdfCount || 0,
+              resources: staticCategoryMatch.resources || [],
+            };
+          }
+
+          return {
+            id: id,
+            slug: slug,
+            title: String(title),
+            description: String(description || "No description available."),
+            articleCount: 0,
+            videoCount: 0,
+            pdfCount: 0,
+            resources: [],
+          };
+        },
+        normalizeHelpGuideCategories(rawList) {
+          if (!Array.isArray(rawList)) {
+            return [];
+          }
+
+          return rawList
+            .map((item, index) => this.normalizeHelpGuideCategory(item, index))
+            .filter((item) => !isEmpty(item.title));
+        },
+        async getHelpGuideCategoryDetails() {
+          try {
+            const roleId = Number(
+              this.currentUser &&
+                this.currentUser.role &&
+                this.currentUser.role.id
+            );
+
+            if (!Number.isFinite(roleId)) {
+              console.warn("Unable to fetch Help Category details: invalid role id.");
+              this.helpCategories = [];
+              this.hasFetchedHelpCategories = true;
+              return;
+            }
+
+            let response = await global.facilioApp.request.invokeFacilioAPI(
+              "/v2/workflow/runWorkflow",
+              {
+                method: "POST",
+                data: {
+                  nameSpace: "helpGuide",
+                  functionName: "getHelpGuideCategories",
+                  paramList: roleId,
+                },
+              }
+            );
+
+            const rawCategories =
+              response &&
+              response.result &&
+              response.result.workflow &&
+              response.result.workflow.returnValue;
+
+            this.helpCategories = this.normalizeHelpGuideCategories(rawCategories);
+            this.hasFetchedHelpCategories = true;
+            console.log(this.helpCategories);
+          } catch (err) {
+            console.error("Error fetching Help Category details:", err);
+            this.helpCategories = [];
+            this.hasFetchedHelpCategories = true;
+          }
+        },
         fetchData() {
           console.log(isEmpty(this.currentUser));
         },
