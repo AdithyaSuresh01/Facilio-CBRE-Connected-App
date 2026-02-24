@@ -70,6 +70,27 @@
     return output;
   }
 
+  function resolveFacilioUrl(urlPath) {
+    const raw = String(urlPath || "").trim();
+    if (!raw) {
+      return "";
+    }
+
+    if (/^https?:\/\//i.test(raw)) {
+      return raw;
+    }
+
+    if (raw.startsWith("//")) {
+      return "https:" + raw;
+    }
+
+    if (raw.startsWith("/")) {
+      return "https://cbre.faciliosandbox.com.au" + raw;
+    }
+
+    return "https://cbre.faciliosandbox.com.au/" + raw.replace(/^\/+/, "");
+  }
+
   function escapeHtml(value) {
     return String(value)
       .replace(/&/g, "&amp;")
@@ -157,6 +178,8 @@
         currentUser: null,
         categories: global.OPS_HELP_DESK_CATEGORIES || [],
         helpCategories: [],
+        HelpGuides: [],
+        guidesByCategory: {},
         hasFetchedHelpCategories: false,
         searchQuery: "",
         resourceSearchQuery: "",
@@ -181,6 +204,25 @@
           }
           return this.categoryList.find((category) => category.slug === this.selectedSlug) || null;
         },
+        activeResources() {
+          if (!this.activeCategory) {
+            return [];
+          }
+
+          const categoryId = String(this.activeCategory.id);
+          const cachedGuides = this.guidesByCategory[categoryId];
+          if (Array.isArray(cachedGuides)) {
+            return cachedGuides;
+          }
+
+          if (Array.isArray(this.HelpGuides) && this.HelpGuides.length > 0) {
+            return this.HelpGuides;
+          }
+
+          return Array.isArray(this.activeCategory.resources)
+            ? this.activeCategory.resources
+            : [];
+        },
         filteredCategories() {
           const query = this.searchQuery.trim().toLowerCase();
           const sourceCategories = this.categoryList;
@@ -196,7 +238,7 @@
           });
         },
         filters() {
-          const resources = this.activeCategory ? this.activeCategory.resources : [];
+          const resources = this.activeResources;
           const articleCount = resources.filter((resource) => resource.type === "Article").length;
           const videoCount = resources.filter((resource) => resource.type === "Video").length;
           const pdfCount = resources.filter((resource) => resource.type === "PDF").length;
@@ -213,7 +255,7 @@
             return [];
           }
 
-          const resources = this.activeCategory.resources;
+          const resources = this.activeResources;
           const query = this.resourceSearchQuery.trim().toLowerCase();
 
           return resources.filter((resource) => {
@@ -270,6 +312,12 @@
               this.currentUser = global.facilioApp.getCurrentUser();
             }
             await this.getHelpGuideCategoryDetails();
+            if (this.selectedSlug) {
+              const selectedCategory = this.activeCategory;
+              if (selectedCategory) {
+                await this.getHelpGuideDetails(selectedCategory.id);
+              }
+            }
             this.fetchData();
           });
         } catch (error) {
@@ -356,6 +404,105 @@
             .map((item, index) => this.normalizeHelpGuideCategory(item, index))
             .filter((item) => !isEmpty(item.title));
         },
+        normalizeHelpGuide(record, index) {
+          const source =
+            record && typeof record === "object" && !Array.isArray(record)
+              ? record
+              : parseMapLikeString(record);
+
+          const idValue =
+            source.id ||
+            source.guideId ||
+            source.guide_id ||
+            source.helpGuideId ||
+            source.help_guide_id ||
+            source.file_upload_custom_helpguidesId ||
+            ("guide-" + (index + 1));
+
+          const title =
+            source.name ||
+            source.title ||
+            source.file_upload_custom_helpguidesFileName ||
+            ("Guide " + (index + 1));
+
+          const description =
+            source.description_custom_helpguides ||
+            source.description ||
+            source.guideDescription ||
+            source.guide_description ||
+            "";
+
+          const previewUrl = resolveFacilioUrl(
+            source.file_upload_custom_helpguidesUrl ||
+              source.url ||
+              source.previewUrl ||
+              source.preview_url ||
+              ""
+          );
+
+          const downloadUrl = resolveFacilioUrl(
+            source.file_upload_custom_helpguidesDownloadUrl ||
+              source.downloadUrl ||
+              source.download_url ||
+              ""
+          );
+
+          const guideType = String(
+            source.guide_type_custom_helpguides ||
+              source.guideType ||
+              source.guide_type ||
+              ""
+          ).toLowerCase();
+
+          const contentType = String(
+            source.file_upload_custom_helpguidesContentType ||
+              source.contentType ||
+              source.content_type ||
+              ""
+          ).toLowerCase();
+
+          const fileName = String(
+            source.file_upload_custom_helpguidesFileName || source.fileName || ""
+          ).toLowerCase();
+
+          let type = "Article";
+          if (guideType.includes("video") || contentType.indexOf("video/") === 0) {
+            type = "Video";
+          } else if (
+            guideType.includes("document") ||
+            guideType.includes("pdf") ||
+            contentType.includes("pdf") ||
+            fileName.endsWith(".pdf")
+          ) {
+            type = "PDF";
+          } else if (guideType.includes("article") || guideType.includes("text")) {
+            type = "Article";
+          }
+
+          const normalizedGuide = {
+            id: String(idValue),
+            title: String(title),
+            type: type,
+            url: previewUrl || downloadUrl || "",
+            downloadUrl: downloadUrl || previewUrl || "",
+            description: String(description || ""),
+          };
+
+          if (type === "Article") {
+            normalizedGuide.content = String(description || title || "");
+          }
+
+          return normalizedGuide;
+        },
+        normalizeHelpGuides(rawList) {
+          if (!Array.isArray(rawList)) {
+            return [];
+          }
+
+          return rawList
+            .map((item, index) => this.normalizeHelpGuide(item, index))
+            .filter((item) => !isEmpty(item.title));
+        },
         async getHelpGuideCategoryDetails() {
           try {
             const roleId = Number(
@@ -398,6 +545,51 @@
             this.hasFetchedHelpCategories = true;
           }
         },
+        async getHelpGuideDetails(categoryId) {
+          try {
+            const roleId = Number(
+              this.currentUser &&
+                this.currentUser.role &&
+                this.currentUser.role.id
+            );
+
+            if (isEmpty(categoryId) || !Number.isFinite(roleId)) {
+              this.HelpGuides = [];
+              return;
+            }
+
+            const categoryAsNumber = Number(categoryId);
+            const categoryParam = Number.isFinite(categoryAsNumber)
+              ? categoryAsNumber
+              : categoryId;
+
+            let response = await global.facilioApp.request.invokeFacilioAPI(
+              "/v2/workflow/runWorkflow",
+              {
+                method: "POST",
+                data: {
+                  nameSpace: "helpGuide",
+                  functionName: "getHelpGuides",
+                  paramList: [categoryParam, roleId],
+                },
+              }
+            );
+
+            const rawGuides =
+              response &&
+              response.result &&
+              response.result.workflow &&
+              response.result.workflow.returnValue;
+
+            this.HelpGuides = this.normalizeHelpGuides(rawGuides);
+            this.$set(this.guidesByCategory, String(categoryId), this.HelpGuides);
+            console.log(this.HelpGuides);
+          } catch (err) {
+            console.error("Error fetching Help Category details:", err);
+            this.HelpGuides = [];
+            this.$set(this.guidesByCategory, String(categoryId), []);
+          }
+        },
         fetchData() {
           console.log(isEmpty(this.currentUser));
         },
@@ -411,11 +603,59 @@
             this.resourceSearchQuery = "";
             this.previewResource = null;
           }
+
+          if (this.selectedSlug) {
+            const selectedCategory = this.categoryList.find(
+              (category) => category.slug === this.selectedSlug
+            );
+
+            if (!selectedCategory) {
+              this.HelpGuides = [];
+              return;
+            }
+
+            const categoryId = String(selectedCategory.id);
+            const cachedGuides = this.guidesByCategory[categoryId];
+            this.HelpGuides = Array.isArray(cachedGuides) ? cachedGuides : [];
+
+            if (!Array.isArray(cachedGuides) || cachedGuides.length === 0) {
+              this.getHelpGuideDetails(selectedCategory.id);
+            }
+            return;
+          }
+
+          this.HelpGuides = [];
         },
-        openCategory(slug) {
+        openCategory(categoryOrSlug) {
+          let category = null;
+          if (
+            categoryOrSlug &&
+            typeof categoryOrSlug === "object" &&
+            !Array.isArray(categoryOrSlug)
+          ) {
+            category = categoryOrSlug;
+          } else {
+            category = this.categoryList.find(
+              (item) => item.slug === String(categoryOrSlug)
+            );
+          }
+
+          const slug = category
+            ? category.slug
+            : String(categoryOrSlug || "").trim();
+
+          if (!slug) {
+            return;
+          }
+
           window.location.hash = "#/category/" + encodeURIComponent(slug);
+
+          if (category && !isEmpty(category.id)) {
+            this.getHelpGuideDetails(category.id);
+          }
         },
         goHome() {
+          this.HelpGuides = [];
           window.location.hash = "#/";
         },
         openResource(resource) {

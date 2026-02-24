@@ -106,7 +106,7 @@
           <div
             v-for="category in filteredCategories"
             :key="category.id"
-            @click="openCategory(category.slug)"
+            @click="openCategory(category)"
             class="kb-card bg-white relative rounded-[16px] cursor-pointer transition-all duration-200 hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)] group h-full"
           >
             <div class="flex flex-col gap-[8px] items-start p-[16px] w-full text-left">
@@ -397,7 +397,7 @@
                 Open in New Tab
               </a>
               <a
-                :href="previewResource.url"
+                :href="previewResource.downloadUrl || previewResource.url"
                 download
                 target="_blank"
                 rel="noopener noreferrer"
