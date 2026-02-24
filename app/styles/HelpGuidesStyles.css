@@ -25,7 +25,7 @@
 #app .kb-hero-title,
 #app .kb-hero-subtitle,
 #app .kb-card-desc {
-  text-align: center !important;
+  text-align: left !important;
 }
 
 #app .kb-card-title {
@@ -34,12 +34,17 @@
 
 #app .kb-hero-mobile,
 #app .kb-hero-mobile * {
-  text-align: center !important;
+  text-align: left !important;
 }
 
 #app .kb-search-input {
   padding-left: 36px !important;
   padding-right: 12px !important;
+  text-align: left !important;
+}
+
+#app .kb-search-input::placeholder {
+  text-align: left !important;
 }
 
 #app .kb-hero-search i,

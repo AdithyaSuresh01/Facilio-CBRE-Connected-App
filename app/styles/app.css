@@ -82,12 +82,12 @@ h2 {
 #app .kb-hero-copy p,
 #app .kb-hero-title,
 #app .kb-hero-subtitle {
-  text-align: center !important;
+  text-align: left !important;
 }
 
 #app .kb-hero-mobile,
 #app .kb-hero-mobile * {
-  text-align: center !important;
+  text-align: left !important;
 }
 
 #app .kb-search-input {
@@ -96,6 +96,11 @@ h2 {
   padding-left: 36px !important;
   padding-right: 12px !important;
   text-indent: 0 !important;
+  text-align: left !important;
+}
+
+#app .kb-search-input::placeholder {
+  text-align: left !important;
 }
 
 #app .kb-hero-illustration {
@@ -112,7 +117,7 @@ h2 {
 
 #app .kb-card-desc {
   min-height: 60px;
-  text-align: center !important;
+  text-align: left !important;
 }
 
 #app .kb-card-title {
