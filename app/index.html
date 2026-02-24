@@ -31,8 +31,9 @@
       <div class="kb-shell flex-1 w-full max-w-[1200px] mx-auto px-[16px] py-[24px] flex flex-col gap-[24px] text-left">
         <div class="kb-header-row flex items-center justify-start gap-[12px]">
           <img
-            src="/app/images/HelpGuides/facilio-logo.svg"
-            alt="Facilio"
+            :src="brandLogoSrc"
+            :alt="brandLogoAlt"
+            @error="onBrandLogoError"
             class="h-[18px] w-[71.25px] object-contain shrink-0"
           />
         </div>
@@ -133,8 +134,9 @@
 
       <div class="flex gap-[8px] h-[48px] items-center justify-center w-full border-t border-[#dbdbdb]">
         <img
-          src="/app/images/HelpGuides/facilio-logo.svg"
-          alt="Facilio"
+          :src="brandLogoSrc"
+          :alt="brandLogoAlt"
+          @error="onBrandLogoError"
           class="h-[12px] w-[48px] object-contain shrink-0"
         />
         <div class="bg-[#dbdbdb] h-[10px] shrink-0 w-px"></div>
@@ -148,8 +150,9 @@
       <div class="kb-shell flex-1 w-full max-w-[1200px] mx-auto px-[16px] py-[24px] flex flex-col gap-[24px] text-left">
         <div class="flex items-center justify-start gap-[12px]">
           <img
-            src="/app/images/HelpGuides/facilio-logo.svg"
-            alt="Facilio"
+            :src="brandLogoSrc"
+            :alt="brandLogoAlt"
+            @error="onBrandLogoError"
             class="h-[18px] w-[71.25px] object-contain shrink-0"
           />
         </div>
@@ -241,8 +244,9 @@
 
       <div class="flex gap-[8px] h-[48px] items-center justify-center w-full border-t border-[#dbdbdb]">
         <img
-          src="/app/images/HelpGuides/facilio-logo.svg"
-          alt="Facilio"
+          :src="brandLogoSrc"
+          :alt="brandLogoAlt"
+          @error="onBrandLogoError"
           class="h-[12px] w-[48px] object-contain shrink-0"
         />
         <div class="bg-[#dbdbdb] h-[10px] shrink-0 w-px"></div>
@@ -397,6 +401,7 @@
                 Open in New Tab
               </a>
               <a
+                v-if="canDownloadGuides"
                 :href="previewResource.downloadUrl || previewResource.url"
                 download
                 target="_blank"
@@ -415,6 +420,17 @@
               class="px-[16px] py-[8px] rounded-[8px] bg-[#0024D6] text-white font-medium text-[13px] hover:bg-[#001bab] transition-colors no-underline"
             >
               Open in New Tab
+            </a>
+            <a
+              v-if="previewResource.type !== 'PDF' && canDownloadGuides && (previewResource.downloadUrl || previewResource.url)"
+              :href="previewResource.downloadUrl || previewResource.url"
+              download
+              target="_blank"
+              rel="noopener noreferrer"
+              class="flex items-center gap-[6px] px-[16px] py-[8px] rounded-[8px] bg-[#0024D6] text-white font-medium text-[13px] hover:bg-[#001bab] transition-colors cursor-pointer no-underline"
+            >
+              <i data-lucide="download" class="w-[14px] h-[14px]"></i>
+              Download
             </a>
           </div>
         </div>

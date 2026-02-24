@@ -176,6 +176,7 @@
       el: el,
       data: {
         currentUser: null,
+        isInternalUser: null,
         categories: global.OPS_HELP_DESK_CATEGORIES || [],
         helpCategories: [],
         HelpGuides: [],
@@ -222,6 +223,17 @@
           return Array.isArray(this.activeCategory.resources)
             ? this.activeCategory.resources
             : [];
+        },
+        canDownloadGuides() {
+          return this.isInternalUser === true;
+        },
+        brandLogoSrc() {
+          return this.isInternalUser === false
+            ? "/app/images/HelpGuides/cbre-logo.svg"
+            : "/app/images/HelpGuides/facilio-logo.svg";
+        },
+        brandLogoAlt() {
+          return this.isInternalUser === false ? "CBRE" : "Facilio";
         },
         filteredCategories() {
           const query = this.searchQuery.trim().toLowerCase();
@@ -311,6 +323,7 @@
             if (typeof global.facilioApp.getCurrentUser === "function") {
               this.currentUser = global.facilioApp.getCurrentUser();
             }
+            await this.fetchIsInternalUser();
             await this.getHelpGuideCategoryDetails();
             if (this.selectedSlug) {
               const selectedCategory = this.activeCategory;
@@ -332,6 +345,56 @@
         document.removeEventListener("keydown", this.handleEscapeKey);
       },
       methods: {
+        getCurrentRoleId() {
+          const roleId = Number(
+            this.currentUser &&
+              this.currentUser.role &&
+              this.currentUser.role.id
+          );
+
+          return Number.isFinite(roleId) ? roleId : null;
+        },
+        async fetchIsInternalUser() {
+          try {
+            const roleId = this.getCurrentRoleId();
+            if (!Number.isFinite(roleId)) {
+              console.warn("Unable to fetch InternalUser details: invalid role id.");
+              this.isInternalUser = false;
+              return;
+            }
+
+            let response = await global.facilioApp.request.invokeFacilioAPI(
+              "/v2/workflow/runWorkflow",
+              {
+                method: "POST",
+                data: {
+                  nameSpace: "helpGuide",
+                  functionName: "isInternalUser",
+                  paramList: [roleId],
+                },
+              }
+            );
+
+            this.isInternalUser =
+              response &&
+              response.result &&
+              response.result.workflow
+                ? Boolean(response.result.workflow.returnValue)
+                : false;
+
+            console.log(this.isInternalUser);
+          } catch (err) {
+            console.error("Error fetching InternalUser details:", err);
+            this.isInternalUser = false;
+          }
+        },
+        onBrandLogoError(event) {
+          if (!event || !event.target) {
+            return;
+          }
+
+          event.target.src = "/app/images/HelpGuides/facilio-logo.svg";
+        },
         normalizeHelpGuideCategory(record, index) {
           const source =
             record && typeof record === "object" && !Array.isArray(record)
@@ -505,12 +568,7 @@
         },
         async getHelpGuideCategoryDetails() {
           try {
-            const roleId = Number(
-              this.currentUser &&
-                this.currentUser.role &&
-                this.currentUser.role.id
-            );
-
+            const roleId = this.getCurrentRoleId();
             if (!Number.isFinite(roleId)) {
               console.warn("Unable to fetch Help Category details: invalid role id.");
               this.helpCategories = [];
@@ -525,7 +583,7 @@
                 data: {
                   nameSpace: "helpGuide",
                   functionName: "getHelpGuideCategories",
-                  paramList: [roleId],
+                  paramList: roleId,
                 },
               }
             );
@@ -547,12 +605,7 @@
         },
         async getHelpGuideDetails(categoryId) {
           try {
-            const roleId = Number(
-              this.currentUser &&
-                this.currentUser.role &&
-                this.currentUser.role.id
-            );
-
+            const roleId = this.getCurrentRoleId();
             if (isEmpty(categoryId) || !Number.isFinite(roleId)) {
               this.HelpGuides = [];
               return;
