@@ -2,6 +2,7 @@
   "use strict";
 
   const DEFAULT_FILTER = "All";
+  const DEFAULT_FACILIO_ORIGIN = "https://cbre.faciliosandbox.com.au";
 
   const isEmpty = (value) => {
     return (
@@ -70,6 +71,41 @@
     return output;
   }
 
+  function getFacilioOrigin() {
+    const configuredOrigin = String(global.FACILIO_BASE_ORIGIN || "").trim();
+    if (/^https?:\/\//i.test(configuredOrigin)) {
+      return configuredOrigin.replace(/\/+$/, "");
+    }
+
+    try {
+      const referrer = global.document && global.document.referrer
+        ? String(global.document.referrer).trim()
+        : "";
+      if (referrer) {
+        const referrerOrigin = new URL(referrer).origin;
+        if (referrerOrigin && /facilio/i.test(referrerOrigin)) {
+          return referrerOrigin.replace(/\/+$/, "");
+        }
+      }
+    } catch (_error) {
+      // Ignore invalid referrer URL parsing and use fallback below.
+    }
+
+    const locationOrigin =
+      global &&
+      global.location &&
+      typeof global.location.origin === "string" &&
+      global.location.origin
+        ? global.location.origin
+        : "";
+
+    if (locationOrigin && /facilio/i.test(locationOrigin)) {
+      return locationOrigin.replace(/\/+$/, "");
+    }
+
+    return DEFAULT_FACILIO_ORIGIN;
+  }
+
   function resolveFacilioUrl(urlPath) {
     const raw = String(urlPath || "").trim();
     if (!raw) {
@@ -84,19 +120,13 @@
       return "https:" + raw;
     }
 
-    const runtimeOrigin =
-      global &&
-      global.location &&
-      typeof global.location.origin === "string" &&
-      global.location.origin
-        ? global.location.origin
-        : "https://cbre.faciliosandbox.com.au";
+    const facilioOrigin = getFacilioOrigin();
 
     if (raw.startsWith("/")) {
-      return runtimeOrigin + raw;
+      return facilioOrigin + raw;
     }
 
-    return runtimeOrigin + "/" + raw.replace(/^\/+/, "");
+    return facilioOrigin + "/" + raw.replace(/^\/+/, "");
   }
 
   function escapeHtml(value) {
