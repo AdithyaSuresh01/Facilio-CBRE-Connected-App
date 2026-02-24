@@ -6,30 +6,16 @@ body,
   height: 100%;
 }
 
-#app {
-  text-align: left;
-}
-
 #app .kb-page,
 #app .kb-page *,
 #app .kb-page *::before,
 #app .kb-page *::after {
+  box-sizing: border-box;
   text-indent: 0 !important;
 }
 
 #app .kb-shell {
   max-width: 1200px;
-}
-
-#app .kb-shell p,
-#app .kb-shell h1,
-#app .kb-shell h2,
-#app .kb-shell h3,
-#app .kb-shell span,
-#app .kb-shell button,
-#app .kb-shell input {
-  margin-left: 0 !important;
-  margin-inline-start: 0 !important;
 }
 
 body {
@@ -42,23 +28,30 @@ body {
   overflow-x: hidden;
 }
 
-* {
-  box-sizing: border-box;
+#app .kb-page {
+  color: #283648;
+  text-align: left !important;
 }
 
-p,
-h1,
-h2 {
-  margin: 0;
+#app .kb-page p,
+#app .kb-page h1,
+#app .kb-page h2,
+#app .kb-page h3,
+#app .kb-page h4,
+#app .kb-page span,
+#app .kb-page label,
+#app .kb-page button,
+#app .kb-page input {
+  margin: 0 !important;
+  margin-left: 0 !important;
+  margin-inline-start: 0 !important;
+  letter-spacing: normal !important;
+  text-align: left;
 }
 
-#app input,
-#app button {
+#app .kb-page button,
+#app .kb-page input {
   font: inherit;
-}
-
-#app input {
-  margin: 0;
 }
 
 #app .kb-hero {
@@ -87,7 +80,7 @@ h2 {
 
 #app .kb-hero-mobile,
 #app .kb-hero-mobile * {
-  text-align: left !important;
+  text-align: center !important;
 }
 
 #app .kb-search-input {
@@ -122,6 +115,38 @@ h2 {
 
 #app .kb-card-title {
   text-align: left !important;
+}
+
+#app .kb-powered-footer {
+  height: 48px;
+  border-top: 1px solid #dbdbdb;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+#app .kb-powered-text {
+  font-family: Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", Oxygen, Ubuntu,
+    "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 18px;
+  color: #607796;
+  opacity: 0.7;
+}
+
+#app .kb-powered-divider {
+  width: 1px;
+  height: 10px;
+  background: #dbdbdb;
+  flex-shrink: 0;
+}
+
+#app .kb-powered-logo {
+  width: 48px;
+  height: 12px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 [v-cloak] {

@@ -1,6 +1,6 @@
 @import url("/app/styles/app.css");
 
-/* Connected-app host style guards */
+/* Connected-app host guards (kept minimal and scoped) */
 #app .kb-page,
 #app .kb-page *,
 #app .kb-page *::before,
@@ -34,7 +34,7 @@
 
 #app .kb-hero-mobile,
 #app .kb-hero-mobile * {
-  text-align: left !important;
+  text-align: center !important;
 }
 
 #app .kb-search-input {
