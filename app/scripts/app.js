@@ -880,13 +880,14 @@
             return false;
           }
 
-          const triggerDownloadFn =
-            global &&
-            global.facilioApp &&
-            global.facilioApp.interface &&
-            global.facilioApp.interface.triggerDownload;
-
-          if (typeof triggerDownloadFn !== "function") {
+          if (
+            !(
+              global &&
+              global.facilioApp &&
+              global.facilioApp.interface &&
+              typeof global.facilioApp.interface.triggerDownload === "function"
+            )
+          ) {
             console.warn(
               "Skipping mobile triggerDownload: facilioApp.interface.triggerDownload unavailable."
             );
@@ -894,7 +895,8 @@
           }
 
           try {
-            triggerDownloadFn(numericFileId, fileName);
+            // Explicit Facilio SDK call requested for mobile local preview/download.
+            window.facilioApp.interface.triggerDownload(numericFileId, fileName);
             return true;
           } catch (error) {
             console.error("Error triggering mobile guide download:", error);
