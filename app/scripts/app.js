@@ -880,20 +880,6 @@
             return false;
           }
 
-          if (
-            !(
-              global &&
-              global.facilioApp &&
-              global.facilioApp.interface &&
-              typeof global.facilioApp.interface.triggerDownload === "function"
-            )
-          ) {
-            console.warn(
-              "Skipping mobile triggerDownload: facilioApp.interface.triggerDownload unavailable."
-            );
-            return false;
-          }
-
           try {
             // Explicit Facilio SDK call requested for mobile local preview/download.
             window.facilioApp.interface.triggerDownload(numericFileId, fileName);
