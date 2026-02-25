@@ -420,10 +420,10 @@
         this.refreshIcons();
 
         try {
-          global.facilioApp = FacilioAppSDK.init();
-          global.facilioApp.on("app.loaded", async () => {
-            if (typeof global.facilioApp.getCurrentUser === "function") {
-              this.currentUser = global.facilioApp.getCurrentUser();
+          window.facilioApp = FacilioAppSDK.init();
+          window.facilioApp.on("app.loaded", async () => {
+            if (typeof window.facilioApp.getCurrentUser === "function") {
+              this.currentUser = window.facilioApp.getCurrentUser();
             }
             await this.fetchIsInternalUser();
             await this.getHelpGuideCategoryDetails();
@@ -465,7 +465,7 @@
               return;
             }
 
-            let response = await global.facilioApp.request.invokeFacilioAPI(
+            let response = await window.facilioApp.request.invokeFacilioAPI(
               "/v2/workflow/runWorkflow",
               {
                 method: "POST",
@@ -676,7 +676,7 @@
               return;
             }
 
-            let response = await global.facilioApp.request.invokeFacilioAPI(
+            let response = await window.facilioApp.request.invokeFacilioAPI(
               "/v2/workflow/runWorkflow",
               {
                 method: "POST",
@@ -714,7 +714,7 @@
               ? categoryAsNumber
               : categoryId;
 
-            let response = await global.facilioApp.request.invokeFacilioAPI(
+            let response = await window.facilioApp.request.invokeFacilioAPI(
               "/v2/workflow/runWorkflow",
               {
                 method: "POST",
