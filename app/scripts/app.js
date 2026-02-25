@@ -129,6 +129,63 @@
     return facilioOrigin + "/" + raw.replace(/^\/+/, "");
   }
 
+  function inferFileExtension(contentType, resourceType) {
+    const normalizedContentType = String(contentType || "").toLowerCase();
+    const normalizedType = String(resourceType || "").toLowerCase();
+
+    if (normalizedContentType.includes("pdf")) {
+      return "pdf";
+    }
+
+    if (normalizedContentType.startsWith("video/")) {
+      const videoExt = normalizedContentType.split("/")[1] || "mp4";
+      return videoExt.split(";")[0].trim() || "mp4";
+    }
+
+    if (normalizedContentType.startsWith("image/")) {
+      const imageExt = normalizedContentType.split("/")[1] || "jpg";
+      return imageExt.split(";")[0].trim() || "jpg";
+    }
+
+    if (normalizedType === "pdf") {
+      return "pdf";
+    }
+
+    if (normalizedType === "video") {
+      return "mp4";
+    }
+
+    return "txt";
+  }
+
+  function sanitizeFileBaseName(value) {
+    const raw = String(value || "")
+      .replace(/[\\/:*?"<>|]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (!raw) {
+      return "help_guide";
+    }
+
+    return raw.replace(/\s/g, "_");
+  }
+
+  function buildDownloadFileName(preferredName, title, contentType, resourceType) {
+    const extension = inferFileExtension(contentType, resourceType);
+    const preferred = String(preferredName || "").trim();
+
+    if (preferred) {
+      const safePreferred = preferred.replace(/[\\/:*?"<>|]+/g, "_").trim();
+      if (/\.[a-z0-9]{2,6}$/i.test(safePreferred)) {
+        return safePreferred;
+      }
+      return safePreferred + "." + extension;
+    }
+
+    return sanitizeFileBaseName(title) + "." + extension;
+  }
+
   function escapeHtml(value) {
     return String(value)
       .replace(/&/g, "&amp;")
@@ -562,9 +619,15 @@
               ""
           ).toLowerCase();
 
-          const fileName = String(
+          const rawFileName = String(
             source.file_upload_custom_helpguidesFileName || source.fileName || ""
-          ).toLowerCase();
+          ).trim();
+          const fileName = rawFileName.toLowerCase();
+          const fileIdValue =
+            source.file_upload_custom_helpguidesId ||
+            source.fileId ||
+            source.file_id ||
+            "";
 
           let type = "Article";
           if (guideType.includes("video") || contentType.indexOf("video/") === 0) {
@@ -591,6 +654,14 @@
             type: type,
             url: guideUrl,
             downloadUrl: downloadUrl || previewUrl || "",
+            fileId: String(fileIdValue || ""),
+            fileName: buildDownloadFileName(
+              rawFileName,
+              title,
+              contentType,
+              type
+            ),
+            contentType: contentType,
             description: String(description || ""),
           };
 
@@ -755,6 +826,11 @@
           window.location.hash = "#/";
         },
         openResource(resource) {
+          if (this.isMobileViewport()) {
+            this.triggerMobileDownload(resource);
+            return;
+          }
+
           this.previewResource = resource;
         },
         closePreview() {
@@ -764,6 +840,58 @@
           if (event.key === "Escape" && this.previewResource) {
             this.closePreview();
           }
+        },
+        isMobileViewport() {
+          if (global && typeof global.matchMedia === "function") {
+            return global.matchMedia("(max-width: 640px)").matches;
+          }
+
+          const width =
+            (global && global.innerWidth) ||
+            (global &&
+              global.document &&
+              global.document.documentElement &&
+              global.document.documentElement.clientWidth) ||
+            1024;
+
+          return width <= 640;
+        },
+        triggerMobileDownload(resource) {
+          if (!resource) {
+            return false;
+          }
+
+          const possibleFileId =
+            resource.fileId ||
+            resource.file_upload_custom_helpguidesId ||
+            resource.id;
+          const fileId = Number(possibleFileId);
+
+          if (!Number.isFinite(fileId)) {
+            return false;
+          }
+
+          const fileName = buildDownloadFileName(
+            resource.fileName || "",
+            resource.title || "help guide",
+            resource.contentType || "",
+            resource.type || ""
+          );
+
+          try {
+            if (
+              global.facilioApp &&
+              global.facilioApp.interface &&
+              typeof global.facilioApp.interface.triggerDownload === "function"
+            ) {
+              global.facilioApp.interface.triggerDownload(fileId, fileName);
+              return true;
+            }
+          } catch (error) {
+            console.error("Error triggering mobile guide download:", error);
+          }
+
+          return false;
         },
         getResourceIconName(type) {
           if (type === "Article") {
