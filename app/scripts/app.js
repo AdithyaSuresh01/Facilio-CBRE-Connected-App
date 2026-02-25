@@ -827,6 +827,7 @@
         },
         openResource(resource) {
           if (this.isMobileViewport()) {
+            this.previewResource = null;
             this.triggerMobileDownload(resource);
             return;
           }
