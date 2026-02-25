@@ -853,6 +853,20 @@
 
           return width <= 768;
         },
+        async downloadFile(fileId, fileName) {
+          console.log("Button Clicked", fileId, fileName);
+          try {
+            let response = await window.facilioApp.interface.triggerDownload(
+              fileId,
+              fileName
+            );
+            console.log("File download initiated", response);
+            return true;
+          } catch (error) {
+            console.log("Error downloading file", error);
+            return false;
+          }
+        },
         triggerMobileDownload(resource) {
           if (!resource) {
             return false;
@@ -880,16 +894,7 @@
             return false;
           }
 
-          try {
-            // Explicit Facilio SDK call requested for mobile local preview/download.
-            console.log(numericFileId);
-            console.log(fileName);
-            window.facilioApp.interface.triggerDownload(numericFileId, fileName);
-            return true;
-          } catch (error) {
-            console.error("Error triggering mobile guide download:", error);
-            return false;
-          }
+          return this.downloadFile(numericFileId, fileName);
         },
         getResourceIconName(type) {
           if (type === "Article") {
