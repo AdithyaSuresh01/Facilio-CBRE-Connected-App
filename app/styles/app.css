@@ -94,6 +94,17 @@ body {
 
 #app .kb-hero-illustration {
   pointer-events: none;
+  width: 156px;
+  height: 156px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#app .kb-hero-illustration fc-illustration {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 #app .kb-card-grid {

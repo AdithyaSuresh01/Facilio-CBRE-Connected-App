@@ -827,31 +827,11 @@
           }
         },
         isMobileViewport() {
-          if (global && typeof global.matchMedia === "function") {
-            if (global.matchMedia("(max-width: 768px)").matches) {
-              return true;
-            }
-
-            if (global.matchMedia("(hover: none) and (pointer: coarse)").matches) {
-              return true;
-            }
+          if (typeof window.ismobile === "function") {
+            return Boolean(window.ismobile());
           }
 
-          const userAgent =
-            (global && global.navigator && global.navigator.userAgent) || "";
-          if (/android|iphone|ipad|ipod|mobile|iemobile|opera mini/i.test(userAgent)) {
-            return true;
-          }
-
-          const width =
-            (global && global.innerWidth) ||
-            (global &&
-              global.document &&
-              global.document.documentElement &&
-              global.document.documentElement.clientWidth) ||
-            1024;
-
-          return width <= 768;
+          return false;
         },
         async downloadFile(fileId, fileName) {
           console.log("Button Clicked", fileId, fileName);
