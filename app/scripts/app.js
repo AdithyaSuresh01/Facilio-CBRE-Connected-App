@@ -129,6 +129,21 @@
     return facilioOrigin + "/" + raw.replace(/^\/+/, "");
   }
 
+  function extractFileIdFromFacilioUrl(urlPath) {
+    const raw = String(urlPath || "").trim();
+    if (!raw) {
+      return null;
+    }
+
+    const match = raw.match(/\/files\/(?:preview|download)\/(\d+)(?:[/?#]|$)/i);
+    if (!match || !match[1]) {
+      return null;
+    }
+
+    const id = Number(match[1]);
+    return Number.isFinite(id) ? id : null;
+  }
+
   function inferFileExtension(contentType, resourceType) {
     const normalizedContentType = String(contentType || "").toLowerCase();
     const normalizedType = String(resourceType || "").toLowerCase();
@@ -844,7 +859,19 @@
         },
         isMobileViewport() {
           if (global && typeof global.matchMedia === "function") {
-            return global.matchMedia("(max-width: 640px)").matches;
+            if (global.matchMedia("(max-width: 768px)").matches) {
+              return true;
+            }
+
+            if (global.matchMedia("(hover: none) and (pointer: coarse)").matches) {
+              return true;
+            }
+          }
+
+          const userAgent =
+            (global && global.navigator && global.navigator.userAgent) || "";
+          if (/android|iphone|ipad|ipod|mobile|iemobile|opera mini/i.test(userAgent)) {
+            return true;
           }
 
           const width =
@@ -855,7 +882,34 @@
               global.document.documentElement.clientWidth) ||
             1024;
 
-          return width <= 640;
+          return width <= 768;
+        },
+        triggerFallbackMobileDownload(resource, fileName) {
+          if (!resource) {
+            return false;
+          }
+
+          const downloadUrl = resource.downloadUrl || resource.url || "";
+          if (!downloadUrl) {
+            return false;
+          }
+
+          try {
+            const anchor = global.document.createElement("a");
+            anchor.href = downloadUrl;
+            anchor.target = "_blank";
+            anchor.rel = "noopener noreferrer";
+            anchor.download = fileName || "";
+            anchor.style.display = "none";
+            global.document.body.appendChild(anchor);
+            anchor.click();
+            global.document.body.removeChild(anchor);
+            return true;
+          } catch (error) {
+            console.error("Error triggering fallback mobile download:", error);
+          }
+
+          return false;
         },
         triggerMobileDownload(resource) {
           if (!resource) {
@@ -865,12 +919,9 @@
           const possibleFileId =
             resource.fileId ||
             resource.file_upload_custom_helpguidesId ||
-            resource.id;
-          const fileId = Number(possibleFileId);
-
-          if (!Number.isFinite(fileId)) {
-            return false;
-          }
+            extractFileIdFromFacilioUrl(resource.downloadUrl || resource.url || "");
+          const numericFileId = Number(possibleFileId);
+          const hasValidFileId = Number.isFinite(numericFileId);
 
           const fileName = buildDownloadFileName(
             resource.fileName || "",
@@ -881,18 +932,19 @@
 
           try {
             if (
+              hasValidFileId &&
               global.facilioApp &&
               global.facilioApp.interface &&
               typeof global.facilioApp.interface.triggerDownload === "function"
             ) {
-              global.facilioApp.interface.triggerDownload(fileId, fileName);
+              global.facilioApp.interface.triggerDownload(numericFileId, fileName);
               return true;
             }
           } catch (error) {
             console.error("Error triggering mobile guide download:", error);
           }
 
-          return false;
+          return this.triggerFallbackMobileDownload(resource, fileName);
         },
         getResourceIconName(type) {
           if (type === "Article") {

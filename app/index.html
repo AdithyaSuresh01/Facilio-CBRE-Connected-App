@@ -221,6 +221,7 @@
               v-for="resource in filteredResources"
               :key="resource.id"
               @click="openResource(resource)"
+              @touchend.stop.prevent="openResource(resource)"
               class="flex items-center justify-between py-[12px] px-[8px] border-b border-[#f0f0f0] transition-colors cursor-pointer hover:bg-[#eef4ff]"
             >
               <div class="flex items-center gap-[12px]">
