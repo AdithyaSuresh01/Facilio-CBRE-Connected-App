@@ -884,7 +884,7 @@
             // Explicit Facilio SDK call requested for mobile local preview/download.
             console.log(numericFileId);
             console.log(fileName);
-            global.facilioApp.interface.triggerDownload(numericFileId, fileName);
+            window.facilioApp.interface.triggerDownload(numericFileId, fileName);
             return true;
           } catch (error) {
             console.error("Error triggering mobile guide download:", error);
