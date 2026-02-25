@@ -853,33 +853,6 @@
 
           return width <= 768;
         },
-        triggerFallbackMobileDownload(resource, fileName) {
-          if (!resource) {
-            return false;
-          }
-
-          const downloadUrl = resource.downloadUrl || resource.url || "";
-          if (!downloadUrl) {
-            return false;
-          }
-
-          try {
-            const anchor = global.document.createElement("a");
-            anchor.href = downloadUrl;
-            anchor.target = "_blank";
-            anchor.rel = "noopener noreferrer";
-            anchor.download = fileName || "";
-            anchor.style.display = "none";
-            global.document.body.appendChild(anchor);
-            anchor.click();
-            global.document.body.removeChild(anchor);
-            return true;
-          } catch (error) {
-            console.error("Error triggering fallback mobile download:", error);
-          }
-
-          return false;
-        },
         triggerMobileDownload(resource) {
           if (!resource) {
             return false;
@@ -899,21 +872,34 @@
             resource.type || ""
           );
 
-          try {
-            if (
-              hasValidFileId &&
-              global.facilioApp &&
-              global.facilioApp.interface &&
-              typeof global.facilioApp.interface.triggerDownload === "function"
-            ) {
-              global.facilioApp.interface.triggerDownload(numericFileId, fileName);
-              return true;
-            }
-          } catch (error) {
-            console.error("Error triggering mobile guide download:", error);
+          if (!hasValidFileId) {
+            console.warn(
+              "Skipping mobile triggerDownload: missing valid file id.",
+              resource
+            );
+            return false;
           }
 
-          return this.triggerFallbackMobileDownload(resource, fileName);
+          const triggerDownloadFn =
+            global &&
+            global.facilioApp &&
+            global.facilioApp.interface &&
+            global.facilioApp.interface.triggerDownload;
+
+          if (typeof triggerDownloadFn !== "function") {
+            console.warn(
+              "Skipping mobile triggerDownload: facilioApp.interface.triggerDownload unavailable."
+            );
+            return false;
+          }
+
+          try {
+            triggerDownloadFn(numericFileId, fileName);
+            return true;
+          } catch (error) {
+            console.error("Error triggering mobile guide download:", error);
+            return false;
+          }
         },
         getResourceIconName(type) {
           if (type === "Article") {
