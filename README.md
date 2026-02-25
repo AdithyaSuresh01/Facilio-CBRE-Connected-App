@@ -42,7 +42,7 @@ For migration details and Facilio embedding pattern, see:
 For direct Facilio Connected Apps upload (without Vite build), use the `/app` folder:
 
 - `app/index.html`
-- `app/scripts/data.js`
+- `app/scripts/HelpGuidesScripts.js`
 - `app/scripts/app.js`
 - `app/styles/app.css`
 - `app/images/*`

@@ -287,11 +287,9 @@
       data: {
         currentUser: null,
         isInternalUser: null,
-        categories: global.OPS_HELP_DESK_CATEGORIES || [],
         helpCategories: [],
         HelpGuides: [],
         guidesByCategory: {},
-        hasFetchedHelpCategories: false,
         searchQuery: "",
         resourceSearchQuery: "",
         activeFilter: DEFAULT_FILTER,
@@ -300,11 +298,7 @@
       },
       computed: {
         categoryList() {
-          if (this.hasFetchedHelpCategories) {
-            return this.helpCategories;
-          }
-
-          return this.categories;
+          return Array.isArray(this.helpCategories) ? this.helpCategories : [];
         },
         isLandingView() {
           return this.selectedSlug === null;
@@ -330,9 +324,7 @@
             return this.HelpGuides;
           }
 
-          return Array.isArray(this.activeCategory.resources)
-            ? this.activeCategory.resources
-            : [];
+          return [];
         },
         canDownloadGuides() {
           return this.isInternalUser === true;
@@ -537,26 +529,6 @@
           const fallbackSlug = "category-" + id;
           const slug = slugify(title, fallbackSlug) + "-" + id;
 
-          const staticCategoryMatch = this.categories.find((category) => {
-            return (
-              category.title.toLowerCase() === String(title).toLowerCase() ||
-              category.slug === slugify(title, fallbackSlug)
-            );
-          });
-
-          if (staticCategoryMatch) {
-            return {
-              id: id,
-              slug: staticCategoryMatch.slug,
-              title: String(title),
-              description: String(description || staticCategoryMatch.description || ""),
-              articleCount: staticCategoryMatch.articleCount || 0,
-              videoCount: staticCategoryMatch.videoCount || 0,
-              pdfCount: staticCategoryMatch.pdfCount || 0,
-              resources: staticCategoryMatch.resources || [],
-            };
-          }
-
           return {
             id: id,
             slug: slug,
@@ -701,7 +673,6 @@
             if (!Number.isFinite(roleId)) {
               console.warn("Unable to fetch Help Category details: invalid role id.");
               this.helpCategories = [];
-              this.hasFetchedHelpCategories = true;
               return;
             }
 
@@ -724,12 +695,10 @@
               response.result.workflow.returnValue;
 
             this.helpCategories = this.normalizeHelpGuideCategories(rawCategories);
-            this.hasFetchedHelpCategories = true;
             console.log(this.helpCategories);
           } catch (err) {
             console.error("Error fetching Help Category details:", err);
             this.helpCategories = [];
-            this.hasFetchedHelpCategories = true;
           }
         },
         async getHelpGuideDetails(categoryId) {
