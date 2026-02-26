@@ -112,10 +112,6 @@
   }
 
   function getInitialDesktopSearchQuery() {
-    if (detectMobileBrowser()) {
-      return "";
-    }
-
     const sources = [
       global && global.location ? global.location.search : "",
       global && global.location ? global.location.hash : "",
@@ -564,10 +560,6 @@
       },
       methods: {
         applySearchQueryPrefill() {
-          if (detectMobileBrowser()) {
-            return;
-          }
-
           if (this.hasAppliedSearchQueryPrefill && !isEmpty(this.searchQuery)) {
             return;
           }

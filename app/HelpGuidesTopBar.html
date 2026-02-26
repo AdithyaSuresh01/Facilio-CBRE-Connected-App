@@ -17,15 +17,6 @@
 <body>
   <div id="app" v-cloak>
     <div class="topbar-shell" v-if="isDesktopMode">
-      <div class="user-section" v-if="user">
-        <div class="avatar">{{ getInitials(user.name) }}</div>
-        <div class="user-details">
-          <p class="name">{{ user.name }}</p>
-          <p class="email">{{ user.email }}</p>
-          <p class="role">{{ user.roleName }}</p>
-        </div>
-      </div>
-
       <div class="hero-card">
         <p class="hero-title">Knowledge Base</p>
         <p class="hero-subtitle">
@@ -48,8 +39,6 @@
           </div>
         </form>
       </div>
-
-      <div v-if="loading" class="loading">Loading details...</div>
     </div>
 
     <div v-else class="desktop-only-note">Topbar help search is available on desktop.</div>

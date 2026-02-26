@@ -111,8 +111,6 @@
   global.helpGuidesTopBarVm = new Vue({
     el: "#app",
     data: {
-      user: null,
-      loading: false,
       searchText: "",
       currentPageUrl: "",
       isDesktopMode: true,
@@ -147,7 +145,6 @@
           // Ignore UI trigger failures; core widget should still function.
         }
 
-        await this.loadUser();
         await this.syncSearchFromCurrentPage();
         this.refreshIcons();
       });
@@ -156,7 +153,6 @@
         if (!this.isDesktopMode) {
           return;
         }
-        await this.loadUser();
         await this.syncSearchFromCurrentPage();
         this.refreshIcons();
       });
@@ -224,46 +220,6 @@
         if (extracted) {
           this.searchText = extracted;
         }
-      },
-
-      async loadUser() {
-        try {
-          this.loading = true;
-          const user = global.facilioApp.getCurrentUser();
-
-          this.user = {
-            name: (user && user.name) || "Unknown User",
-            email: (user && user.email) || "No Email",
-            roleName:
-              (user && user.role && user.role.name) ||
-              (user && user.roleName) ||
-              "No Role",
-          };
-        } catch (error) {
-          console.error("Error fetching current user:", error);
-          this.user = {
-            name: "Unknown User",
-            email: "No Email",
-            roleName: "No Role",
-          };
-        } finally {
-          this.loading = false;
-        }
-      },
-
-      getInitials(name) {
-        const parts = String(name || "")
-          .trim()
-          .split(/\s+/)
-          .filter(Boolean);
-        if (!parts.length) {
-          return "";
-        }
-        return parts
-          .slice(0, 2)
-          .map((part) => part[0])
-          .join("")
-          .toUpperCase();
       },
 
       async openHelpGuides() {
