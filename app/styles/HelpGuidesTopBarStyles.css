@@ -9,13 +9,13 @@ body {
 }
 
 #app {
-  padding: 12px;
+  padding: 10px 12px;
 }
 
 .topbar-shell {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 0;
 }
 
 .user-section {
@@ -76,7 +76,7 @@ body {
 .hero-card {
   border-radius: 16px;
   background: #3c229d;
-  padding: 16px 20px 12px;
+  padding: 16px 18px 14px;
   color: #edf5ff;
 }
 
@@ -98,26 +98,24 @@ body {
 
 .search-form {
   margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .search-input-wrap {
   position: relative;
+  flex: 1;
 }
 
-.search-icon-button {
+.search-icon-wrap {
   position: absolute;
-  left: 8px;
+  left: 10px;
   top: 50%;
   transform: translateY(-50%);
-  width: 24px;
-  height: 24px;
-  border: 0;
-  background: transparent;
-  padding: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
 }
 
 .search-icon {
@@ -147,6 +145,24 @@ body {
 .search-input:focus {
   border-color: rgba(255, 255, 255, 0.55);
   background: rgba(255, 255, 255, 0.18);
+}
+
+.search-button {
+  flex-shrink: 0;
+  height: 38px;
+  min-width: 74px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.18);
+  color: #edf5ff;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 0 12px;
+  cursor: pointer;
+}
+
+.search-button:hover {
+  background: rgba(255, 255, 255, 0.24);
 }
 
 .loading {

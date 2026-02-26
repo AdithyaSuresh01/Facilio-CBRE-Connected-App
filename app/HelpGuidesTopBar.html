@@ -26,9 +26,9 @@
 
         <form class="search-form" @submit.prevent="openHelpGuides">
           <div class="search-input-wrap">
-            <button type="submit" class="search-icon-button" aria-label="Search">
+            <span class="search-icon-wrap" aria-hidden="true">
               <i data-lucide="search" class="search-icon"></i>
-            </button>
+            </span>
             <input
               type="text"
               v-model="searchText"
@@ -37,6 +37,7 @@
               @keydown.enter.prevent="openHelpGuides"
             />
           </div>
+          <button type="submit" class="search-button">Search</button>
         </form>
       </div>
     </div>

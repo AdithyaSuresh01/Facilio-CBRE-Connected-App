@@ -84,6 +84,7 @@
     const targetUrl = new URL(HELP_GUIDES_APP_URL);
     if (query) {
       targetUrl.searchParams.set("search", query);
+      targetUrl.hash = "/?search=" + encodeURIComponent(query);
     }
     return targetUrl.toString();
   }
@@ -117,6 +118,7 @@
     },
     updated() {
       this.refreshIcons();
+      this.refreshPanelSize();
     },
     created() {
       global.facilioApp = FacilioAppSDK.init();
@@ -139,7 +141,7 @@
           });
           global.facilioApp.interface.trigger("setTitle", { title: TOPBAR_TITLE });
           global.facilioApp.interface.trigger("showHeader", true);
-          global.facilioApp.interface.trigger("resize", { height: 300 });
+          global.facilioApp.interface.trigger("resize", { height: 230 });
           global.facilioApp.interface.trigger("show");
         } catch (_error) {
           // Ignore UI trigger failures; core widget should still function.
@@ -147,6 +149,7 @@
 
         await this.syncSearchFromCurrentPage();
         this.refreshIcons();
+        this.refreshPanelSize();
       });
 
       global.facilioApp.on("topbar.active", async () => {
@@ -155,6 +158,7 @@
         }
         await this.syncSearchFromCurrentPage();
         this.refreshIcons();
+        this.refreshPanelSize();
       });
     },
     methods: {
@@ -164,6 +168,34 @@
             global.lucide.createIcons();
           });
         }
+      },
+      refreshPanelSize() {
+        if (!this.isDesktopMode) {
+          return;
+        }
+
+        this.$nextTick(() => {
+          try {
+            if (
+              !global.facilioApp ||
+              !global.facilioApp.interface ||
+              typeof global.facilioApp.interface.trigger !== "function"
+            ) {
+              return;
+            }
+
+            const appRoot = global.document.getElementById("app");
+            if (!appRoot) {
+              return;
+            }
+
+            const contentHeight = Math.ceil(appRoot.scrollHeight);
+            const targetHeight = Math.max(210, Math.min(260, contentHeight + 12));
+            global.facilioApp.interface.trigger("resize", { height: targetHeight });
+          } catch (_error) {
+            // Ignore resize failures.
+          }
+        });
       },
       async getCurrentPageUrl() {
         try {

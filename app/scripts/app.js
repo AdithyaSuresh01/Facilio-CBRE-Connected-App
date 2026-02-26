@@ -99,7 +99,10 @@
         const params = new URLSearchParams(queryParts[i]);
         const query =
           params.get("search") || params.get("q") || params.get("query") || "";
-        const normalized = String(query).replace(/\s+/g, " ").trim();
+        const normalized = String(query)
+          .split("#")[0]
+          .replace(/\s+/g, " ")
+          .trim();
         if (normalized) {
           return normalized;
         }
@@ -108,19 +111,91 @@
       }
     }
 
+    const regexMatch = rawSearch.match(/[?&#](?:search|q|query)=([^&#]+)/i);
+    if (regexMatch && regexMatch[1]) {
+      let decoded = regexMatch[1];
+      try {
+        decoded = decodeURIComponent(regexMatch[1]);
+      } catch (_error) {
+        decoded = regexMatch[1];
+      }
+      return decoded.replace(/\+/g, " ").replace(/\s+/g, " ").trim();
+    }
+
     return "";
   }
 
-  function getInitialDesktopSearchQuery() {
+  function getSearchQueryFromObject(source) {
+    if (!source || typeof source !== "object") {
+      return "";
+    }
+
+    const directCandidates = [source.search, source.q, source.query];
+    for (let index = 0; index < directCandidates.length; index += 1) {
+      const candidate = directCandidates[index];
+      if (typeof candidate === "string" || typeof candidate === "number") {
+        const normalized = String(candidate).replace(/\s+/g, " ").trim();
+        if (normalized) {
+          return normalized;
+        }
+      }
+    }
+
+    if (source.query && typeof source.query === "object") {
+      const nestedQuery = getSearchQueryFromObject(source.query);
+      if (nestedQuery) {
+        return nestedQuery;
+      }
+    }
+
+    const urlCandidates = [
+      source.url,
+      source.href,
+      source.currentPage,
+      source.path,
+      source.pathname,
+      source.location,
+    ];
+    for (let index = 0; index < urlCandidates.length; index += 1) {
+      const candidate = urlCandidates[index];
+      if (typeof candidate === "string") {
+        const fromUrl = getSearchQueryFromUrl(candidate);
+        if (fromUrl) {
+          return fromUrl;
+        }
+      } else if (candidate && typeof candidate === "object") {
+        const fromObject = getSearchQueryFromObject(candidate);
+        if (fromObject) {
+          return fromObject;
+        }
+      }
+    }
+
+    const contextualQuery = getSearchQueryFromObject(source.context);
+    if (contextualQuery) {
+      return contextualQuery;
+    }
+
+    return "";
+  }
+
+  function getInitialDesktopSearchQuery(additionalSources) {
     const sources = [
       global && global.location ? global.location.search : "",
       global && global.location ? global.location.hash : "",
       global && global.location ? global.location.href : "",
       global && global.document ? global.document.referrer : "",
     ];
+    if (Array.isArray(additionalSources) && additionalSources.length > 0) {
+      sources.unshift.apply(sources, additionalSources);
+    }
 
     for (let index = 0; index < sources.length; index += 1) {
-      const query = getSearchQueryFromUrl(sources[index]);
+      const source = sources[index];
+      const query =
+        typeof source === "string"
+          ? getSearchQueryFromUrl(source)
+          : getSearchQueryFromObject(source);
       if (query) {
         return query;
       }
@@ -524,8 +599,8 @@
 
         try {
           window.facilioApp = FacilioAppSDK.init();
-          window.facilioApp.on("app.loaded", async () => {
-            this.applySearchQueryPrefill();
+          window.facilioApp.on("app.loaded", async (data) => {
+            await this.applySearchQueryPrefill(data);
             if (typeof window.facilioApp.getCurrentUser === "function") {
               this.currentUser = window.facilioApp.getCurrentUser();
             }
@@ -559,12 +634,39 @@
         }
       },
       methods: {
-        applySearchQueryPrefill() {
+        async applySearchQueryPrefill(appLoadedData) {
           if (this.hasAppliedSearchQueryPrefill && !isEmpty(this.searchQuery)) {
             return;
           }
 
-          const queryText = getInitialDesktopSearchQuery();
+          const extraSources = [];
+          if (appLoadedData) {
+            extraSources.push(appLoadedData);
+            if (appLoadedData.context) {
+              extraSources.push(appLoadedData.context);
+            }
+          }
+
+          try {
+            if (
+              window.facilioApp &&
+              window.facilioApp.interface &&
+              typeof window.facilioApp.interface.getCurrentPage === "function"
+            ) {
+              const currentPageResult = window.facilioApp.interface.getCurrentPage();
+              const currentPageData =
+                currentPageResult && typeof currentPageResult.then === "function"
+                  ? await currentPageResult
+                  : currentPageResult;
+              if (!isEmpty(currentPageData)) {
+                extraSources.push(currentPageData);
+              }
+            }
+          } catch (_error) {
+            // Ignore current page extraction failures.
+          }
+
+          const queryText = getInitialDesktopSearchQuery(extraSources);
           if (!queryText) {
             return;
           }
