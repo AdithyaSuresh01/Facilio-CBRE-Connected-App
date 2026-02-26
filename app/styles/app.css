@@ -104,6 +104,8 @@ body {
 
 #app .kb-card-desc {
   text-align: left !important;
+  white-space: pre-line !important;
+  word-break: break-word;
 }
 
 #app .kb-card-title {
