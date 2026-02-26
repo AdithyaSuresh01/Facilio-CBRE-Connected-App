@@ -72,19 +72,65 @@
   }
 
   function getSearchQueryFromUrl(searchValue) {
-    const rawSearch = String(searchValue || "");
+    const rawSearch = String(searchValue || "").trim();
     if (!rawSearch) {
       return "";
     }
 
-    try {
-      const params = new URLSearchParams(rawSearch);
-      const query =
-        params.get("search") || params.get("q") || params.get("query") || "";
-      return String(query).replace(/\s+/g, " ").trim();
-    } catch (_error) {
+    const queryParts = [];
+    if (rawSearch.charAt(0) === "?") {
+      queryParts.push(rawSearch.slice(1));
+    }
+    if (rawSearch.indexOf("?") !== -1) {
+      queryParts.push(rawSearch.split("?").slice(1).join("?"));
+    }
+    if (rawSearch.indexOf("#") !== -1 && rawSearch.indexOf("?") !== -1) {
+      const hashQuery = rawSearch.split("#").pop().split("?").slice(1).join("?");
+      if (hashQuery) {
+        queryParts.push(hashQuery);
+      }
+    }
+    if (queryParts.length === 0) {
+      queryParts.push(rawSearch);
+    }
+
+    for (let i = 0; i < queryParts.length; i += 1) {
+      try {
+        const params = new URLSearchParams(queryParts[i]);
+        const query =
+          params.get("search") || params.get("q") || params.get("query") || "";
+        const normalized = String(query).replace(/\s+/g, " ").trim();
+        if (normalized) {
+          return normalized;
+        }
+      } catch (_error) {
+        // Keep trying with other formats.
+      }
+    }
+
+    return "";
+  }
+
+  function getInitialDesktopSearchQuery() {
+    if (detectMobileBrowser()) {
       return "";
     }
+
+    const sources = [
+      global && global.location ? global.location.search : "",
+      global && global.location ? global.location.hash : "",
+      global && global.location ? global.location.href : "",
+      global && global.document ? global.document.referrer : "",
+    ];
+
+    for (let index = 0; index < sources.length; index += 1) {
+      const query = getSearchQueryFromUrl(sources[index]);
+      if (query) {
+        return query;
+      }
+    }
+
+    return "";
   }
 
   function getFacilioOrigin() {
@@ -344,9 +390,8 @@
         helpCategories: [],
         HelpGuides: [],
         guidesByCategory: {},
-        searchQuery: getSearchQueryFromUrl(
-          global && global.location ? global.location.search : ""
-        ),
+        searchQuery: getInitialDesktopSearchQuery(),
+        hasAppliedSearchQueryPrefill: false,
         resourceSearchQuery: "",
         activeFilter: DEFAULT_FILTER,
         previewResource: null,
@@ -470,6 +515,7 @@
         },
       },
       mounted() {
+        this.applySearchQueryPrefill();
         this.onHashChange();
         window.addEventListener("hashchange", this.onHashChange);
         document.addEventListener("keydown", this.handleEscapeKey);
@@ -483,6 +529,7 @@
         try {
           window.facilioApp = FacilioAppSDK.init();
           window.facilioApp.on("app.loaded", async () => {
+            this.applySearchQueryPrefill();
             if (typeof window.facilioApp.getCurrentUser === "function") {
               this.currentUser = window.facilioApp.getCurrentUser();
             }
@@ -516,6 +563,23 @@
         }
       },
       methods: {
+        applySearchQueryPrefill() {
+          if (detectMobileBrowser()) {
+            return;
+          }
+
+          if (this.hasAppliedSearchQueryPrefill && !isEmpty(this.searchQuery)) {
+            return;
+          }
+
+          const queryText = getInitialDesktopSearchQuery();
+          if (!queryText) {
+            return;
+          }
+
+          this.searchQuery = queryText;
+          this.hasAppliedSearchQueryPrefill = true;
+        },
         getCurrentRoleId() {
           const roleId = Number(
             this.currentUser &&

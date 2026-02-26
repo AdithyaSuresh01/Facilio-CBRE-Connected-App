@@ -88,6 +88,26 @@
     return targetUrl.toString();
   }
 
+  function isMobileRuntime() {
+    try {
+      if (
+        global.facilioApp &&
+        typeof global.facilioApp.isMobile === "function"
+      ) {
+        return Boolean(global.facilioApp.isMobile());
+      }
+    } catch (_error) {
+      // Fallback checks below.
+    }
+
+    const userAgent = String(
+      (global.navigator && global.navigator.userAgent) || ""
+    ).toLowerCase();
+    return /(android|iphone|ipad|ipod|mobile|iemobile|opera mini)/i.test(
+      userAgent
+    );
+  }
+
   global.helpGuidesTopBarVm = new Vue({
     el: "#app",
     data: {
@@ -95,11 +115,25 @@
       loading: false,
       searchText: "",
       currentPageUrl: "",
+      isDesktopMode: true,
+    },
+    updated() {
+      this.refreshIcons();
     },
     created() {
       global.facilioApp = FacilioAppSDK.init();
 
       global.facilioApp.on("app.loaded", async () => {
+        this.isDesktopMode = !isMobileRuntime();
+        if (!this.isDesktopMode) {
+          try {
+            global.facilioApp.interface.trigger("hide");
+          } catch (_error) {
+            // no-op
+          }
+          return;
+        }
+
         try {
           global.facilioApp.interface.trigger("setIcon", {
             iconGroup: "action",
@@ -115,14 +149,26 @@
 
         await this.loadUser();
         await this.syncSearchFromCurrentPage();
+        this.refreshIcons();
       });
 
       global.facilioApp.on("topbar.active", async () => {
+        if (!this.isDesktopMode) {
+          return;
+        }
         await this.loadUser();
         await this.syncSearchFromCurrentPage();
+        this.refreshIcons();
       });
     },
     methods: {
+      refreshIcons() {
+        if (global.lucide && typeof global.lucide.createIcons === "function") {
+          this.$nextTick(() => {
+            global.lucide.createIcons();
+          });
+        }
+      },
       async getCurrentPageUrl() {
         try {
           if (
@@ -133,9 +179,22 @@
             const result = global.facilioApp.interface.getCurrentPage();
             const pageData =
               result && typeof result.then === "function" ? await result : result;
-            const pageUrl =
+            let pageUrl = "";
+            if (typeof pageData === "string") {
+              pageUrl = pageData;
+            } else if (pageData && typeof pageData.url === "string") {
+              pageUrl = pageData.url;
+            } else if (
               pageData &&
-              (pageData.url || pageData.href || pageData.currentPage || "");
+              pageData.url &&
+              typeof pageData.url.href === "string"
+            ) {
+              pageUrl = pageData.url.href;
+            } else if (pageData && typeof pageData.href === "string") {
+              pageUrl = pageData.href;
+            } else if (pageData && typeof pageData.currentPage === "string") {
+              pageUrl = pageData.currentPage;
+            }
             if (pageUrl) {
               return String(pageUrl);
             }
@@ -208,6 +267,10 @@
       },
 
       async openHelpGuides() {
+        if (!this.isDesktopMode) {
+          return;
+        }
+
         const targetUrl = buildHelpGuidesUrl(this.searchText);
 
         try {
