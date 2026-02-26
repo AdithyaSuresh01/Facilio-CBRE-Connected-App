@@ -144,6 +144,44 @@
     return Number.isFinite(id) ? id : null;
   }
 
+  function detectMobileBrowser() {
+    const nav = global && global.navigator ? global.navigator : null;
+
+    if (
+      nav &&
+      nav.userAgentData &&
+      typeof nav.userAgentData.mobile === "boolean"
+    ) {
+      return nav.userAgentData.mobile;
+    }
+
+    const userAgent = String((nav && nav.userAgent) || "").toLowerCase();
+    const mobileUserAgentPattern =
+      /(android|webos|iphone|ipad|ipod|blackberry|bb10|iemobile|opera mini|mobile)/i;
+    const hasMobileUserAgent = mobileUserAgentPattern.test(userAgent);
+
+    const maxTouchPoints =
+      nav && typeof nav.maxTouchPoints === "number" ? nav.maxTouchPoints : 0;
+    const hasTouchSupport =
+      maxTouchPoints > 1 || (global && "ontouchstart" in global);
+
+    let isNarrowViewport = false;
+    if (global && typeof global.matchMedia === "function") {
+      isNarrowViewport = global.matchMedia("(max-width: 768px)").matches;
+    } else {
+      const viewportWidth =
+        (global && global.innerWidth) ||
+        (global &&
+          global.document &&
+          global.document.documentElement &&
+          global.document.documentElement.clientWidth) ||
+        1024;
+      isNarrowViewport = viewportWidth <= 768;
+    }
+
+    return hasMobileUserAgent || (hasTouchSupport && isNarrowViewport);
+  }
+
   function inferFileExtension(contentType, resourceType) {
     const normalizedContentType = String(contentType || "").toLowerCase();
     const normalizedType = String(resourceType || "").toLowerCase();
@@ -282,6 +320,18 @@
   }
 
   function createOperationsHelpDeskApp(el) {
+    if (global.Vue && global.Vue.config) {
+      const existingIgnored = Array.isArray(global.Vue.config.ignoredElements)
+        ? global.Vue.config.ignoredElements.slice()
+        : [];
+      ["fc-icon", "fc-illustration"].forEach((tagName) => {
+        if (existingIgnored.indexOf(tagName) === -1) {
+          existingIgnored.push(tagName);
+        }
+      });
+      global.Vue.config.ignoredElements = existingIgnored;
+    }
+
     return new Vue({
       el: el,
       data: {
@@ -827,11 +877,7 @@
           }
         },
         isMobileViewport() {
-          if (typeof window.ismobile === "function") {
-            return Boolean(window.ismobile());
-          }
-
-          return false;
+          return detectMobileBrowser();
         },
         async downloadFile(fileId, fileName) {
           console.log("Button Clicked", fileId, fileName);

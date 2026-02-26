@@ -99,12 +99,26 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
 }
 
-#app .kb-hero-illustration fc-illustration {
+#app .kb-hero-illustration fc-illustration,
+#app .kb-hero-illustration .kb-hero-illustration-fallback {
   width: 100%;
   height: 100%;
   display: block;
+}
+
+#app .kb-hero-illustration fc-illustration:not(:defined) {
+  display: none;
+}
+
+#app .kb-hero-illustration .kb-hero-illustration-fallback {
+  object-fit: contain;
+}
+
+#app .kb-hero-illustration fc-illustration:defined ~ .kb-hero-illustration-fallback {
+  display: none;
 }
 
 #app .kb-card-grid {
