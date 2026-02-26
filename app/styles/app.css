@@ -94,10 +94,8 @@ body {
 
 #app .kb-hero-illustration {
   pointer-events: none;
-  width: 156px;
-  height: 156px;
-  object-fit: contain;
   display: block;
+  object-fit: contain;
 }
 
 #app .kb-card-grid {
