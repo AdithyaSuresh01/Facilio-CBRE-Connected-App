@@ -95,11 +95,9 @@
       searchText: "",
       currentPageUrl: "",
       isDesktopMode: true,
-      lastPanelHeight: 0,
     },
     updated() {
       this.refreshIcons();
-      this.refreshPanelSize();
     },
     created() {
       global.facilioApp = FacilioAppSDK.init();
@@ -121,7 +119,8 @@
             icon: "help",
           });
           global.facilioApp.interface.trigger("setTitle", { title: TOPBAR_TITLE });
-          global.facilioApp.interface.trigger("showHeader", true);
+          global.facilioApp.interface.trigger("showHeader", false);
+          global.facilioApp.interface.trigger("resize", { height: 300 });
           global.facilioApp.interface.trigger("show");
         } catch (_error) {
           // Ignore UI trigger failures; core widget should still function.
@@ -129,7 +128,6 @@
 
         await this.syncSearchFromCurrentPage();
         this.refreshIcons();
-        this.refreshPanelSize();
       });
 
       global.facilioApp.on("topbar.active", async () => {
@@ -138,7 +136,11 @@
         }
         await this.syncSearchFromCurrentPage();
         this.refreshIcons();
-        this.refreshPanelSize();
+        try {
+          global.facilioApp.interface.trigger("resize", { height: 300 });
+        } catch (_error) {
+          // no-op
+        }
       });
     },
     methods: {
@@ -148,42 +150,6 @@
             global.lucide.createIcons();
           });
         }
-      },
-      refreshPanelSize() {
-        if (!this.isDesktopMode) {
-          return;
-        }
-
-        this.$nextTick(() => {
-          try {
-            if (
-              !global.facilioApp ||
-              !global.facilioApp.interface ||
-              typeof global.facilioApp.interface.trigger !== "function"
-            ) {
-              return;
-            }
-
-            const appRoot = global.document.getElementById("app");
-            if (!appRoot) {
-              return;
-            }
-
-            const contentHeight = Math.ceil(
-              appRoot.getBoundingClientRect
-                ? appRoot.getBoundingClientRect().height
-                : appRoot.scrollHeight
-            );
-            const targetHeight = Math.max(120, contentHeight + 6);
-            if (this.lastPanelHeight === targetHeight) {
-              return;
-            }
-            this.lastPanelHeight = targetHeight;
-            global.facilioApp.interface.trigger("resize", { height: targetHeight });
-          } catch (_error) {
-            // Ignore resize failures.
-          }
-        });
       },
       async getCurrentPageUrl() {
         try {
