@@ -333,6 +333,11 @@
         activeFilter: DEFAULT_FILTER,
         previewResource: null,
         selectedSlug: null,
+        mobileDownloadInProgress: false,
+        mobileToastVisible: false,
+        mobileToastMessage: "",
+        mobileToastTimer: null,
+        mobileDownloadUnlockTimer: null,
       },
       computed: {
         categoryList() {
@@ -483,6 +488,14 @@
       beforeDestroy() {
         window.removeEventListener("hashchange", this.onHashChange);
         document.removeEventListener("keydown", this.handleEscapeKey);
+        if (this.mobileToastTimer) {
+          clearTimeout(this.mobileToastTimer);
+          this.mobileToastTimer = null;
+        }
+        if (this.mobileDownloadUnlockTimer) {
+          clearTimeout(this.mobileDownloadUnlockTimer);
+          this.mobileDownloadUnlockTimer = null;
+        }
       },
       methods: {
         getCurrentRoleId() {
@@ -847,10 +860,53 @@
           this.HelpGuides = [];
           window.location.hash = "#/";
         },
-        openResource(resource) {
+        showMobileToast(message, durationMs) {
+          this.mobileToastMessage = String(message || "").trim();
+          this.mobileToastVisible = this.mobileToastMessage.length > 0;
+
+          if (this.mobileToastTimer) {
+            clearTimeout(this.mobileToastTimer);
+            this.mobileToastTimer = null;
+          }
+
+          const timeout = Number(durationMs);
+          if (this.mobileToastVisible && Number.isFinite(timeout) && timeout > 0) {
+            this.mobileToastTimer = setTimeout(() => {
+              this.mobileToastVisible = false;
+              this.mobileToastMessage = "";
+              this.mobileToastTimer = null;
+            }, timeout);
+          }
+        },
+        async openResource(resource) {
           if (this.isMobileViewport()) {
             this.previewResource = null;
-            this.triggerMobileDownload(resource);
+
+            if (this.mobileDownloadInProgress) {
+              this.showMobileToast("Please wait, opening selected file...", 2000);
+              return;
+            }
+
+            this.mobileDownloadInProgress = true;
+            this.showMobileToast("Opening file...", 2200);
+
+            try {
+              const isOpened = await this.triggerMobileDownload(resource);
+              if (!isOpened) {
+                this.showMobileToast("Unable to open file. Please try again.", 2400);
+              }
+            } catch (error) {
+              console.error("Error while opening mobile file:", error);
+              this.showMobileToast("Unable to open file. Please try again.", 2400);
+            } finally {
+              if (this.mobileDownloadUnlockTimer) {
+                clearTimeout(this.mobileDownloadUnlockTimer);
+              }
+              this.mobileDownloadUnlockTimer = setTimeout(() => {
+                this.mobileDownloadInProgress = false;
+                this.mobileDownloadUnlockTimer = null;
+              }, 900);
+            }
             return;
           }
 

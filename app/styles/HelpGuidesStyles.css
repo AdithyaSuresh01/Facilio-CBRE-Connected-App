@@ -23,10 +23,18 @@
 #app .kb-hero-copy,
 #app .kb-hero-copy p,
 #app .kb-hero-title,
-#app .kb-hero-subtitle,
+#app .kb-hero-subtitle {
+  text-align: left !important;
+}
+
 #app .kb-card-desc {
   text-align: left !important;
-  white-space: pre-line !important;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal !important;
   word-break: break-word;
 }
 

@@ -443,6 +443,13 @@
         </button>
       </div>
     </div>
+
+    <div
+      v-if="mobileToastVisible"
+      class="kb-mobile-toast sm:hidden fixed left-1/2 -translate-x-1/2 bottom-[68px] z-[70] px-[14px] py-[8px] rounded-[8px] bg-[#283648] text-white text-[12px] leading-[18px] shadow-[0_6px_20px_rgba(0,0,0,0.25)] pointer-events-none"
+    >
+      {{ mobileToastMessage }}
+    </div>
   </div>
 
   <script type="text/javascript">
