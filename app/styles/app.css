@@ -56,11 +56,11 @@ body {
 
 #app .kb-hero-desktop {
   min-height: 200px;
-  align-items: stretch;
+  align-items: center;
 }
 
 #app .kb-hero-inner {
-  align-items: flex-start;
+  align-items: center;
 }
 
 #app .kb-hero-left {
