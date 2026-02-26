@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Help Guides Topbar</title>
+
+  <!-- Facilio SDK -->
+  <script src="https://static.facilio.com/apps-sdk/beta/facilio_apps_sdk.min.js"></script>
+
+  <!-- VueJS 2 -->
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14"></script>
+
+  <link rel="stylesheet" href="/app/styles/HelpGuidesTopBarStyles.css" />
+</head>
+<body>
+  <div id="app" v-cloak>
+    <div class="topbar-shell">
+      <div class="user-section" v-if="user">
+        <div class="avatar">{{ getInitials(user.name) }}</div>
+        <div class="user-details">
+          <p class="name">{{ user.name }}</p>
+          <p class="email">{{ user.email }}</p>
+          <p class="role">{{ user.roleName }}</p>
+        </div>
+      </div>
+
+      <div class="hero-card">
+        <p class="hero-title">Knowledge Base</p>
+        <p class="hero-subtitle">
+          Manuals, training materials and guidelines enabling seamless operations
+          across the platform
+        </p>
+
+        <form class="search-form" @submit.prevent="openHelpGuides">
+          <div class="search-input-wrap">
+            <span class="search-icon" aria-hidden="true">&#128269;</span>
+            <input
+              type="text"
+              v-model="searchText"
+              class="search-input"
+              placeholder="Search categories..."
+            />
+          </div>
+          <button type="submit" class="search-button">Search</button>
+        </form>
+      </div>
+
+      <div v-if="loading" class="loading">Loading details...</div>
+    </div>
+  </div>
+
+  <script src="/app/scripts/HelpGuidesTopBar.js"></script>
+</body>
+</html>

@@ -1,0 +1,161 @@
+body {
+  margin: 0;
+  font-family: Roboto, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  background: #ffffff;
+}
+
+[v-cloak] {
+  display: none;
+}
+
+#app {
+  padding: 12px;
+}
+
+.topbar-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.user-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #f8f9fb;
+  border: 1px solid #eceef2;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #3d5bd4;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.user-details {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.name {
+  margin: 0;
+  color: #283648;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 18px;
+}
+
+.email {
+  margin: 0;
+  color: #607796;
+  font-size: 11px;
+  line-height: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.role {
+  margin: 0;
+  color: #8b98ac;
+  font-size: 10px;
+  line-height: 14px;
+}
+
+.hero-card {
+  border-radius: 12px;
+  background: #3c229d;
+  padding: 14px 12px 12px;
+  color: #edf5ff;
+}
+
+.hero-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 28px;
+  text-align: center;
+}
+
+.hero-subtitle {
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: #d8e3f1;
+  text-align: center;
+}
+
+.search-form {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.search-input-wrap {
+  position: relative;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #8b7cc8;
+  font-size: 14px;
+}
+
+.search-input {
+  box-sizing: border-box;
+  width: 100%;
+  height: 38px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  color: #ffffff;
+  font-size: 14px;
+  line-height: 20px;
+  padding: 9px 12px 9px 34px;
+  outline: none;
+}
+
+.search-input::placeholder {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.search-input:focus {
+  border-color: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.search-button {
+  border: 0;
+  border-radius: 8px;
+  height: 34px;
+  background: #ffffff;
+  color: #283648;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.search-button:hover {
+  background: #eef2ff;
+}
+
+.loading {
+  color: #607796;
+  font-size: 12px;
+  line-height: 16px;
+}

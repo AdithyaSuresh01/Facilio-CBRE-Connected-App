@@ -71,6 +71,22 @@
     return output;
   }
 
+  function getSearchQueryFromUrl(searchValue) {
+    const rawSearch = String(searchValue || "");
+    if (!rawSearch) {
+      return "";
+    }
+
+    try {
+      const params = new URLSearchParams(rawSearch);
+      const query =
+        params.get("search") || params.get("q") || params.get("query") || "";
+      return String(query).replace(/\s+/g, " ").trim();
+    } catch (_error) {
+      return "";
+    }
+  }
+
   function getFacilioOrigin() {
     const configuredOrigin = String(global.FACILIO_BASE_ORIGIN || "").trim();
     if (/^https?:\/\//i.test(configuredOrigin)) {
@@ -328,7 +344,9 @@
         helpCategories: [],
         HelpGuides: [],
         guidesByCategory: {},
-        searchQuery: "",
+        searchQuery: getSearchQueryFromUrl(
+          global && global.location ? global.location.search : ""
+        ),
         resourceSearchQuery: "",
         activeFilter: DEFAULT_FILTER,
         previewResource: null,
