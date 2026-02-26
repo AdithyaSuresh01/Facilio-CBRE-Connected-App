@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Help Guides Topbar</title>
+
+  <!-- Facilio SDK -->
+  <script src="https://static.facilio.com/apps-sdk/beta/facilio_apps_sdk.min.js"></script>
+
+  <!-- VueJS 2 -->
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <link rel="stylesheet" href="/app/styles/HelpGuidesTopBarStyles.css" />
+</head>
+<body class="help-guides-topbar-body">
+  <div id="app" v-cloak>
+    <div class="topbar-shell" v-if="isDesktopMode">
+      <div class="hero-card">
+        <p class="hero-title">Knowledge Base</p>
+        <p class="hero-subtitle">
+          Manuals, training materials and guidelines enabling seamless operations
+          across the platform
+        </p>
+
+        <form class="search-form" @submit.prevent="openHelpGuides">
+          <div class="search-input-wrap">
+            <span class="search-icon-wrap" aria-hidden="true">
+              <i data-lucide="search" class="search-icon"></i>
+            </span>
+            <input
+              type="text"
+              v-model="searchText"
+              class="search-input"
+              placeholder="Search categories..."
+              @keydown.enter.prevent="openHelpGuides"
+            />
+          </div>
+          <button type="submit" class="search-button">Search</button>
+        </form>
+      </div>
+    </div>
+
+    <div v-else class="desktop-only-note">Topbar help search is available on desktop.</div>
+  </div>
+
+  <script src="/app/scripts/HelpGuidesTopBarScripts.js"></script>
+</body>
+</html>

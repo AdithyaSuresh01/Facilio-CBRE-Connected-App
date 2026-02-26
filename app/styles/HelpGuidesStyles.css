@@ -1,0 +1,63 @@
+@import url("/app/styles/app.css");
+
+/* Connected-app host guards (kept minimal and scoped) */
+#app .kb-page,
+#app .kb-page *,
+#app .kb-page *::before,
+#app .kb-page *::after {
+  text-indent: 0 !important;
+}
+
+#app .kb-page p,
+#app .kb-page h1,
+#app .kb-page h2,
+#app .kb-page h3,
+#app .kb-page span,
+#app .kb-page input,
+#app .kb-page button {
+  margin-left: 0 !important;
+  margin-inline-start: 0 !important;
+  letter-spacing: normal !important;
+}
+
+#app .kb-hero-copy,
+#app .kb-hero-copy p,
+#app .kb-hero-title,
+#app .kb-hero-subtitle {
+  text-align: left !important;
+}
+
+#app .kb-card-desc {
+  text-align: left !important;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal !important;
+  word-break: break-word;
+}
+
+#app .kb-card-title {
+  text-align: left !important;
+}
+
+#app .kb-hero-mobile,
+#app .kb-hero-mobile * {
+  text-align: center !important;
+}
+
+#app .kb-search-input {
+  padding-left: 36px !important;
+  padding-right: 12px !important;
+  text-align: left !important;
+}
+
+#app .kb-search-input::placeholder {
+  text-align: left !important;
+}
+
+#app .kb-hero-search i,
+#app .kb-hero-mobile i[data-lucide="search"] {
+  left: 12px !important;
+}
