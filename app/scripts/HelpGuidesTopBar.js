@@ -4,20 +4,6 @@
   const HELP_GUIDES_APP_URL =
     "https://cbre.faciliosandbox.com.au/cbresandbox/maintenance/help-guides/help-guide-connected-app/753";
   const TOPBAR_TITLE = "Help Guides";
-  const ROUTE_STOP_WORDS = new Set([
-    "all",
-    "list",
-    "index",
-    "overview",
-    "summary",
-    "view",
-    "details",
-    "maintenance",
-    "cbresandbox",
-    "building-meta-data",
-    "help-guides",
-    "help-guide-connected-app",
-  ]);
 
   function normalizeText(value) {
     return String(value || "")
@@ -47,33 +33,27 @@
       return "";
     }
 
-    const pathname = parsedUrl.pathname || "";
-    const buildingMetaMatch = pathname.match(
-      /\/building-meta-data\/([^/?#]+)(?:\/|$)/i
-    );
-
-    if (buildingMetaMatch && buildingMetaMatch[1]) {
-      return normalizeText(decodeSegment(buildingMetaMatch[1]));
-    }
-
-    const segments = pathname.split("/").filter(Boolean);
+    const segments = (parsedUrl.pathname || "").split("/").filter(Boolean);
     if (!segments.length) {
       return "";
     }
 
-    for (let index = segments.length - 1; index >= 0; index -= 1) {
-      const segment = segments[index];
-      const normalizedSegment = String(segment).toLowerCase();
+    const maintenanceIndex = segments.findIndex(
+      (segment) => String(segment).toLowerCase() === "maintenance"
+    );
 
-      if (!normalizedSegment || ROUTE_STOP_WORDS.has(normalizedSegment)) {
-        continue;
-      }
+    if (maintenanceIndex === -1) {
+      return "";
+    }
 
-      if (/^\d+$/.test(normalizedSegment)) {
-        continue;
-      }
+    const secondAfterMaintenance = segments[maintenanceIndex + 2];
+    if (secondAfterMaintenance) {
+      return normalizeText(decodeSegment(secondAfterMaintenance));
+    }
 
-      return normalizeText(decodeSegment(segment));
+    const firstAfterMaintenance = segments[maintenanceIndex + 1];
+    if (firstAfterMaintenance) {
+      return normalizeText(decodeSegment(firstAfterMaintenance));
     }
 
     return "";
@@ -115,6 +95,7 @@
       searchText: "",
       currentPageUrl: "",
       isDesktopMode: true,
+      lastPanelHeight: 0,
     },
     updated() {
       this.refreshIcons();
@@ -141,7 +122,6 @@
           });
           global.facilioApp.interface.trigger("setTitle", { title: TOPBAR_TITLE });
           global.facilioApp.interface.trigger("showHeader", true);
-          global.facilioApp.interface.trigger("resize", { height: 300 });
           global.facilioApp.interface.trigger("show");
         } catch (_error) {
           // Ignore UI trigger failures; core widget should still function.
@@ -189,8 +169,16 @@
               return;
             }
 
-            const contentHeight = Math.ceil(appRoot.scrollHeight);
-            const targetHeight = Math.max(260, Math.min(420, contentHeight + 20));
+            const contentHeight = Math.ceil(
+              appRoot.getBoundingClientRect
+                ? appRoot.getBoundingClientRect().height
+                : appRoot.scrollHeight
+            );
+            const targetHeight = Math.max(120, contentHeight + 6);
+            if (this.lastPanelHeight === targetHeight) {
+              return;
+            }
+            this.lastPanelHeight = targetHeight;
             global.facilioApp.interface.trigger("resize", { height: targetHeight });
           } catch (_error) {
             // Ignore resize failures.
