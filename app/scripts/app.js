@@ -320,18 +320,6 @@
   }
 
   function createOperationsHelpDeskApp(el) {
-    if (global.Vue && global.Vue.config) {
-      const existingIgnored = Array.isArray(global.Vue.config.ignoredElements)
-        ? global.Vue.config.ignoredElements.slice()
-        : [];
-      ["fc-icon", "fc-illustration"].forEach((tagName) => {
-        if (existingIgnored.indexOf(tagName) === -1) {
-          existingIgnored.push(tagName);
-        }
-      });
-      global.Vue.config.ignoredElements = existingIgnored;
-    }
-
     return new Vue({
       el: el,
       data: {
@@ -472,9 +460,7 @@
         try {
           window.facilioApp = FacilioAppSDK.init();
           window.facilioApp.on("app.loaded", async () => {
-            if (typeof window.facilioApp.getCurrentUser === "function") {
-              this.currentUser = window.facilioApp.getCurrentUser();
-            }
+            await this.hydrateCurrentUserFromSdk();
             await this.fetchIsInternalUser();
             await this.getHelpGuideCategoryDetails();
             if (this.selectedSlug) {
@@ -497,12 +483,70 @@
         document.removeEventListener("keydown", this.handleEscapeKey);
       },
       methods: {
-        getCurrentRoleId() {
-          const roleId = Number(
-            this.currentUser &&
-              this.currentUser.role &&
-              this.currentUser.role.id
+        waitFor(milliseconds) {
+          return new Promise((resolve) => {
+            setTimeout(resolve, milliseconds);
+          });
+        },
+        async hydrateCurrentUserFromSdk(maxAttempts, intervalMs) {
+          const attempts = Number(maxAttempts) > 0 ? Number(maxAttempts) : 6;
+          const retryDelay = Number(intervalMs) > 0 ? Number(intervalMs) : 250;
+
+          if (
+            !window.facilioApp ||
+            typeof window.facilioApp.getCurrentUser !== "function"
+          ) {
+            this.currentUser = null;
+            return null;
+          }
+
+          for (let attempt = 0; attempt < attempts; attempt += 1) {
+            const sdkUser = window.facilioApp.getCurrentUser();
+            if (!isEmpty(sdkUser)) {
+              this.currentUser = sdkUser;
+              return sdkUser;
+            }
+
+            await this.waitFor(retryDelay);
+          }
+
+          this.currentUser = window.facilioApp.getCurrentUser() || null;
+          return this.currentUser;
+        },
+        getWorkflowReturnValue(response) {
+          return (
+            response &&
+            response.result &&
+            response.result.workflow &&
+            response.result.workflow.returnValue
           );
+        },
+        async runHelpGuideWorkflow(functionName, paramList) {
+          return window.facilioApp.request.invokeFacilioAPI(
+            "/v2/workflow/runWorkflow",
+            {
+              method: "POST",
+              data: {
+                nameSpace: "helpGuide",
+                functionName: functionName,
+                paramList: paramList,
+              },
+            }
+          );
+        },
+        getCurrentRoleId() {
+          const roleCandidate =
+            (this.currentUser &&
+              this.currentUser.role &&
+              this.currentUser.role.id) ||
+            (this.currentUser && this.currentUser.roleId) ||
+            (this.currentUser && this.currentUser.userRoleId) ||
+            (this.currentUser && this.currentUser.defaultRoleId) ||
+            (this.currentUser &&
+              this.currentUser.role &&
+              this.currentUser.role.roleId) ||
+            null;
+          const roleId = Number(roleCandidate);
 
           return Number.isFinite(roleId) ? roleId : null;
         },
@@ -515,24 +559,14 @@
               return;
             }
 
-            let response = await window.facilioApp.request.invokeFacilioAPI(
-              "/v2/workflow/runWorkflow",
-              {
-                method: "POST",
-                data: {
-                  nameSpace: "helpGuide",
-                  functionName: "isInternalUser",
-                  paramList: [roleId],
-                },
-              }
-            );
+            let response = await this.runHelpGuideWorkflow("isInternalUser", [roleId]);
+            let internalUserValue = this.getWorkflowReturnValue(response);
+            if (internalUserValue === undefined || internalUserValue === null) {
+              response = await this.runHelpGuideWorkflow("isInternalUser", roleId);
+              internalUserValue = this.getWorkflowReturnValue(response);
+            }
 
-            this.isInternalUser =
-              response &&
-              response.result &&
-              response.result.workflow
-                ? Boolean(response.result.workflow.returnValue)
-                : false;
+            this.isInternalUser = Boolean(internalUserValue);
 
             console.log(this.isInternalUser);
           } catch (err) {
@@ -726,25 +760,25 @@
               return;
             }
 
-            let response = await window.facilioApp.request.invokeFacilioAPI(
-              "/v2/workflow/runWorkflow",
-              {
-                method: "POST",
-                data: {
-                  nameSpace: "helpGuide",
-                  functionName: "getHelpGuideCategories",
-                  paramList: [roleId],
-                },
-              }
+            let response = await this.runHelpGuideWorkflow(
+              "getHelpGuideCategories",
+              roleId
+            );
+            let normalizedCategories = this.normalizeHelpGuideCategories(
+              this.getWorkflowReturnValue(response)
             );
 
-            const rawCategories =
-              response &&
-              response.result &&
-              response.result.workflow &&
-              response.result.workflow.returnValue;
+            if (normalizedCategories.length === 0) {
+              response = await this.runHelpGuideWorkflow(
+                "getHelpGuideCategories",
+                [roleId]
+              );
+              normalizedCategories = this.normalizeHelpGuideCategories(
+                this.getWorkflowReturnValue(response)
+              );
+            }
 
-            this.helpCategories = this.normalizeHelpGuideCategories(rawCategories);
+            this.helpCategories = normalizedCategories;
             console.log(this.helpCategories);
           } catch (err) {
             console.error("Error fetching Help Category details:", err);
@@ -764,25 +798,25 @@
               ? categoryAsNumber
               : categoryId;
 
-            let response = await window.facilioApp.request.invokeFacilioAPI(
-              "/v2/workflow/runWorkflow",
-              {
-                method: "POST",
-                data: {
-                  nameSpace: "helpGuide",
-                  functionName: "getHelpGuides",
-                  paramList: [categoryParam, roleId],
-                },
-              }
+            let response = await this.runHelpGuideWorkflow("getHelpGuides", [
+              categoryParam,
+              roleId,
+            ]);
+            let normalizedGuides = this.normalizeHelpGuides(
+              this.getWorkflowReturnValue(response)
             );
 
-            const rawGuides =
-              response &&
-              response.result &&
-              response.result.workflow &&
-              response.result.workflow.returnValue;
+            if (normalizedGuides.length === 0) {
+              response = await this.runHelpGuideWorkflow("getHelpGuides", [
+                String(categoryParam),
+                roleId,
+              ]);
+              normalizedGuides = this.normalizeHelpGuides(
+                this.getWorkflowReturnValue(response)
+              );
+            }
 
-            this.HelpGuides = this.normalizeHelpGuides(rawGuides);
+            this.HelpGuides = normalizedGuides;
             this.$set(this.guidesByCategory, String(categoryId), this.HelpGuides);
             console.log(this.HelpGuides);
           } catch (err) {
