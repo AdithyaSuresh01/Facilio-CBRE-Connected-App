@@ -141,7 +141,7 @@
           });
           global.facilioApp.interface.trigger("setTitle", { title: TOPBAR_TITLE });
           global.facilioApp.interface.trigger("showHeader", true);
-          global.facilioApp.interface.trigger("resize", { height: 230 });
+          global.facilioApp.interface.trigger("resize", { height: 300 });
           global.facilioApp.interface.trigger("show");
         } catch (_error) {
           // Ignore UI trigger failures; core widget should still function.
@@ -190,7 +190,7 @@
             }
 
             const contentHeight = Math.ceil(appRoot.scrollHeight);
-            const targetHeight = Math.max(210, Math.min(260, contentHeight + 12));
+            const targetHeight = Math.max(260, Math.min(420, contentHeight + 20));
             global.facilioApp.interface.trigger("resize", { height: targetHeight });
           } catch (_error) {
             // Ignore resize failures.
